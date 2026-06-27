@@ -1,63 +1,59 @@
-export interface IndexData {
+export interface Vitals {
+  hr: number;
+  bp: string;
+  temp: number;
+  rr: number;
+  spo2: number;
+}
+
+export interface Labs {
+  wbc: number;
+  lactate: number;
+  creatinine: number;
+}
+
+export interface Patient {
   id: string;
   name: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  prevClose: number;
-  open: number;
-  high: number;
-  low: number;
-  volume: number;
-  sparkline: number[];
+  age: number;
+  gender: string;
+  admissionDate: string;
+  department: string;
+  vitals: Vitals;
+  labs: Labs;
+  clinicalNotes: string;
+  status: 'Stable' | 'Warning' | 'Critical';
 }
 
-export interface StockData {
-  symbol: string;
-  name: string;
-  sector: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  prevClose: number;
-  open: number;
-  high: number;
-  low: number;
-  volume: number;
-  weight: number; // weightage in Nifty 50
-  sparkline: number[];
-  lastUpdate: number;
-}
-
-export interface HistoricalBar {
-  time: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
-
-export interface Portfolio {
-  cash: number;
-  holdings: Record<string, Holding>;
-  transactions: Transaction[];
-}
-
-export interface Holding {
-  symbol: string;
-  quantity: number;
-  avgBuyPrice: number;
-}
-
-export interface Transaction {
-  id: string;
-  symbol: string;
-  type: 'BUY' | 'SELL';
-  quantity: number;
-  price: number;
+export interface PredictionResult {
+  sepsisProbability: number;
+  mortalityProbability: number;
+  confidenceScore: number;
   timestamp: string;
-  totalAmount: number;
+  modelMetadata: {
+    name: string;
+    sepsisAuroc: number;
+    mortalityAuroc: number;
+    sepsisEce: number;
+    mortalityEce: number;
+  };
 }
 
-export type Timeframe = '1D' | '1W' | '1M' | '1Y' | '5Y';
+export interface ExplainabilityResult {
+  explanation: string;
+  featureImportance?: {
+    feature: string;
+    importance: number;
+  }[];
+  nlpEntities?: {
+    diagnoses: string[];
+    medications: string[];
+    symptoms: string[];
+    procedures: string[];
+  };
+  report?: {
+    executiveSummary: string;
+    keyRiskFactors: string[];
+    recommendedNextSteps: string[];
+  };
+}
