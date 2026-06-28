@@ -2,6 +2,7 @@ import React from 'react';
 import { ExplainabilityResult } from '../types';
 import { Sparkles, FileText, Bot, ListChecks, Tags } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import FeatureImportanceChart from './FeatureImportanceChart';
 
 interface ExplainabilityPanelProps {
   explainability: ExplainabilityResult | null;
@@ -36,7 +37,7 @@ export default function ExplainabilityPanel({
         <button
           onClick={onGenerateExplanation}
           disabled={loading || !!explainability}
-          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {loading ? (
              <span className="flex items-center gap-2">
@@ -77,30 +78,7 @@ export default function ExplainabilityPanel({
           {explainability.featureImportance && explainability.featureImportance.length > 0 && (
             <div className="bg-slate-950 rounded-xl p-4 border border-slate-800/80">
               <h4 className="text-[10px] font-bold text-slate-500 uppercase mb-3">Model Feature Importance (SHAP Analysis)</h4>
-              <div className="space-y-3">
-                {explainability.featureImportance.map((f, i) => (
-                  <div key={i} className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs text-slate-400">
-                      <span>{f.feature}</span>
-                      <span className={f.importance > 0 ? "text-rose-400" : "text-emerald-400"}>
-                        {f.importance > 0 ? "+" : ""}{f.importance.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden relative">
-                       {/* Center line */}
-                       <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-600/50" />
-                       {/* Bar */}
-                      <div 
-                        className={`h-full absolute top-0 rounded-full ${f.importance > 0 ? 'bg-rose-500' : 'bg-emerald-500'}`} 
-                        style={{ 
-                          width: `${Math.min(Math.abs(f.importance) * 50, 50)}%`,
-                          left: f.importance > 0 ? '50%' : `${50 - Math.min(Math.abs(f.importance) * 50, 50)}%`
-                        }} 
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <FeatureImportanceChart data={explainability.featureImportance} />
             </div>
           )}
 

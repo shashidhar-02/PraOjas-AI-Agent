@@ -12,6 +12,20 @@ export interface Labs {
   creatinine: number;
 }
 
+export interface Observation {
+  id: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface DecisionLogEntry {
+  id: string;
+  type: 'AI_PREDICTION' | 'AI_EXPLANATION' | 'CLINICIAN_INTERVENTION';
+  action: string;
+  timestamp: string;
+  details?: string;
+}
+
 export interface Patient {
   id: string;
   name: string;
@@ -22,6 +36,8 @@ export interface Patient {
   vitals: Vitals;
   labs: Labs;
   clinicalNotes: string;
+  observations?: Observation[];
+  decisionLogs?: DecisionLogEntry[];
   status: 'Stable' | 'Warning' | 'Critical';
 }
 

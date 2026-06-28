@@ -214,7 +214,7 @@ export default function PatientEntryForm({ onSubmit, onCancel, loading }: Patien
           <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-slate-200 transition-colors">
             Cancel
           </button>
-          <button type="submit" disabled={loading} className="px-5 py-2 bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+          <button type="submit" disabled={loading} className="px-5 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50">
             {loading ? 'Processing...' : 'Run Analysis'}
           </button>
         </div>

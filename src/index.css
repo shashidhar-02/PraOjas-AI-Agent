@@ -4,4 +4,82 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* We override slate colors to map to our theme variables */
+  --color-slate-50: var(--theme-slate-50);
+  --color-slate-100: var(--theme-slate-100);
+  --color-slate-200: var(--theme-slate-200);
+  --color-slate-300: var(--theme-slate-300);
+  --color-slate-400: var(--theme-slate-400);
+  --color-slate-500: var(--theme-slate-500);
+  --color-slate-600: var(--theme-slate-600);
+  --color-slate-700: var(--theme-slate-700);
+  --color-slate-800: var(--theme-slate-800);
+  --color-slate-900: var(--theme-slate-900);
+  --color-slate-950: var(--theme-slate-950);
+}
+
+:root {
+  /* LIGHT MODE (Inverted Dark Palette) */
+  --theme-slate-50: #020617;   /* orig 950 */
+  --theme-slate-100: #0f172a;  /* orig 900 */
+  --theme-slate-200: #1e293b;  /* orig 800 */
+  --theme-slate-300: #334155;  /* orig 700 */
+  --theme-slate-400: #475569;  /* orig 600 */
+  --theme-slate-500: #64748b;  /* orig 500 */
+  --theme-slate-600: #94a3b8;  /* orig 400 */
+  --theme-slate-700: #cbd5e1;  /* orig 300 */
+  --theme-slate-800: #e2e8f0;  /* orig 200 */
+  --theme-slate-900: #ffffff;  /* white instead of orig 100 for clean cards */
+  --theme-slate-950: #f8fafc;  /* orig 50 */
+}
+
+.dark {
+  /* DARK MODE (Original Slate Palette) */
+  --theme-slate-50: #f8fafc;
+  --theme-slate-100: #f1f5f9;
+  --theme-slate-200: #e2e8f0;
+  --theme-slate-300: #cbd5e1;
+  --theme-slate-400: #94a3b8;
+  --theme-slate-500: #64748b;
+  --theme-slate-600: #475569;
+  --theme-slate-700: #334155;
+  --theme-slate-800: #1e293b;
+  --theme-slate-900: #0f172a;
+  --theme-slate-950: #020617;
+}
+
+body {
+  @apply bg-slate-950 text-slate-200;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar for small containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--theme-slate-700);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-slate-600);
+}
+
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, fill, stroke, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.card-3d {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+.card-3d-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }

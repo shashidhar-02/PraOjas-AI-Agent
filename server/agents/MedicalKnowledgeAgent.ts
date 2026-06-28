@@ -65,4 +65,52 @@ export class MedicalKnowledgeAgent {
       };
     }
   }
+
+  async suggestSmartVitals(patientData: any) {
+    const prompt = `
+      You are an AI Medical Assistant simulating patient vitals progression.
+      Based on the patient's current vitals, recent history, and status, suggest the likely current (next) reading of vitals.
+      
+      Patient Data:
+      Age/Gender: ${patientData.age} ${patientData.gender}
+      Current Vitals: HR ${patientData.vitals.hr}, BP ${patientData.vitals.bp}, Temp ${patientData.vitals.temp}C, RR ${patientData.vitals.rr}, SpO2 ${patientData.vitals.spo2}%
+      Status: ${patientData.status}
+      Sepsis Risk Trend: ${patientData.status === 'Critical' ? 'Increasing rapidly' : patientData.status === 'Warning' ? 'Slightly elevated' : 'Stable'}
+
+      Suggest the next plausible reading for HR, BP, Temp, RR, and SpO2 reflecting realistic physiological progression.
+      Output ONLY a valid JSON object matching this structure:
+      {
+        "hr": 85,
+        "bp": "120/80",
+        "temp": 37.2,
+        "rr": 16,
+        "spo2": 98
+      }
+      Do not include any markdown such as \`\`\`json.
+    `;
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          temperature: 0.3
+        }
+      });
+
+      let responseText = response.text || "{}";
+      responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      
+      return JSON.parse(responseText);
+    } catch (error) {
+      console.error('Error suggesting smart vitals:', error);
+      return {
+        hr: patientData.vitals.hr,
+        bp: patientData.vitals.bp,
+        temp: patientData.vitals.temp,
+        rr: patientData.vitals.rr,
+        spo2: patientData.vitals.spo2
+      };
+    }
+  }
 }

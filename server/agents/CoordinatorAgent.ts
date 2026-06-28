@@ -66,5 +66,11 @@ export class CoordinatorAgent {
        _validationWarnings: validationResult.warnings
     };
   }
+
+  async handleSmartVitalsRequest(patient: any) {
+    console.log(`[Coordinator Agent] Delegating smart vitals request for patient ${patient.id} to MedicalKnowledgeAgent...`);
+    const suggestedVitals = await this.medicalKnowledgeAgent.suggestSmartVitals(patient);
+    return suggestedVitals;
+  }
 }
 

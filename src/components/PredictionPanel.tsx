@@ -55,7 +55,7 @@ export default function PredictionPanel({ prediction, loading, onRunPrediction, 
         <button
           onClick={onRunPrediction}
           disabled={loading}
-          className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {loading ? (
              <span className="flex items-center gap-2">
@@ -114,9 +114,37 @@ export default function PredictionPanel({ prediction, loading, onRunPrediction, 
            </div>
 
            {prediction.sepsisProbability > 0.5 && (
-             <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex gap-3 text-rose-300 text-xs items-start">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>High risk of sepsis detected. Recommend clinical review and initiation of sepsis bundle protocol if confirmed.</p>
+             <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex flex-col gap-2">
+                <div className="flex items-start gap-2 text-rose-400 text-xs font-bold">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>CRITICAL: High Sepsis Risk Detected</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-[11px] text-rose-300/80">
+                  <p className="font-semibold text-rose-300">Suggested Preemptive Interventions:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Initiate 1-hour sepsis bundle protocol.</li>
+                    <li>Obtain blood cultures before antibiotic administration.</li>
+                    <li>Administer broad-spectrum antibiotics.</li>
+                    <li>Prepare for rapid fluid resuscitation (30mL/kg crystalloid) if hypotensive.</li>
+                  </ul>
+                </div>
+             </div>
+           )}
+
+           {prediction.sepsisProbability > 0.3 && prediction.sepsisProbability <= 0.5 && (
+             <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex flex-col gap-2">
+                <div className="flex items-start gap-2 text-amber-400 text-xs font-bold">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>WARNING: Elevated Sepsis Risk</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-[11px] text-amber-300/80">
+                  <p className="font-semibold text-amber-300">Suggested Nursing Actions:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>Increase frequency of vitals monitoring (q1-2 hrs).</li>
+                    <li>Monitor urine output and fluid balance closely.</li>
+                    <li>Assess for new signs of infection or mental status changes.</li>
+                  </ul>
+                </div>
              </div>
            )}
         </div>
