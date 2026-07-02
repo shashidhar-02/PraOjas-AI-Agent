@@ -581,6 +581,7 @@ export function PatientList({
 export function PredictionPanel({ patient }: { patient: Patient }) {
   const { effectiveTheme } = useTheme();
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [prediction, setPrediction] = useState<any>(null);
   
   const gaugeBg = effectiveTheme === "dark" ? "#1e293b" : "#e2e8f0";
@@ -606,18 +607,21 @@ export function PredictionPanel({ patient }: { patient: Patient }) {
   async function handleRunInference() {
     setState("loading");
     setPrediction(null);
+    setErrorMessage("");
     try {
       const res = await fetch('/api/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ patient })
       });
-      if (!res.ok) throw new Error('Prediction failed');
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Prediction failed');
+      
       setPrediction(data);
       setState("done");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorMessage(err.message || "Unknown error occurred");
       setState("error");
     }
   }
@@ -662,6 +666,16 @@ export function PredictionPanel({ patient }: { patient: Patient }) {
             </div>
             <p className="text-sm font-medium text-muted-foreground">No prediction generated yet</p>
             <p className="text-xs text-muted-foreground mt-1">Click "Run Inference" to analyze patient data</p>
+          </div>
+        )}
+
+        {state === "error" && (
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
+            <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-3">
+              <AlertTriangle className="w-6 h-6 text-rose-500" />
+            </div>
+            <p className="text-sm font-semibold text-rose-500">Inference Failed</p>
+            <p className="text-xs text-muted-foreground mt-1">Check the server logs or ensure your API key is valid.</p>
           </div>
         )}
 

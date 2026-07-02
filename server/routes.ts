@@ -92,9 +92,9 @@ export function createRouter(
     try {
       const prediction = await coordinatorAgent.handlePredictionRequest(patient);
       res.json(prediction);
-    } catch (error) {
-      logger.error({ error }, '[/api/predict] Error running prediction');
-      res.status(500).json({ error: 'Failed to run prediction.' });
+    } catch (error: any) {
+      logger.error({ error: error.message }, '[/api/predict] Error running prediction');
+      res.status(500).json({ error: error.message || 'Failed to run prediction.' });
     }
   });
 
