@@ -14,28 +14,28 @@ export default function AgentWorkflowDialog({ onClose }: AgentWorkflowDialogProp
       icon: Network,
       color: "text-indigo-400 dark:text-indigo-400",
       bg: "bg-indigo-500/10 dark:bg-indigo-500/10",
-      desc: "Orchestrates workflow, routes user requests, and delegates tasks to specialized Gemini sub-agents."
+      desc: "Orchestrates workflow, routes user requests, and delegates tasks to specialized AI sub-agents."
     },
     {
       name: "Document Understanding Agent",
       icon: Database,
       color: "text-blue-400 dark:text-blue-400",
       bg: "bg-blue-500/10 dark:bg-blue-500/10",
-      desc: "Uses Gemini to parse and extract patient history and clinical data from uploaded medical documents (PDFs)."
+      desc: "Uses AI to parse and extract patient history and clinical data from uploaded medical documents (PDFs)."
     },
     {
       name: "Prediction Agent",
       icon: BrainCircuit,
       color: "text-rose-400 dark:text-rose-400",
       bg: "bg-rose-500/10 dark:bg-rose-500/10",
-      desc: "Uses Gemini as a predictive LLM agent for zero/few-shot sepsis and mortality forecasting based on clinical context."
+      desc: "Uses an LLM-based predictive agent for sepsis and mortality forecasting based on clinical context."
     },
     {
       name: "Medical Knowledge Agent",
       icon: Bot,
       color: "text-emerald-400 dark:text-emerald-400",
       bg: "bg-emerald-500/10 dark:bg-emerald-500/10",
-      desc: "Uses Gemini to cross-reference predictions with clinical guidelines (e.g., Sepsis Bundles) for actionable insights."
+      desc: "Cross-references predictions with clinical guidelines (e.g., Sepsis Bundles) for actionable insights."
     },
     {
       name: "Clinical Report Agent",

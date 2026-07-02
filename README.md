@@ -1,71 +1,64 @@
-# PraOjas AI - Multi-Agent Clinical Decision Support
+# PraOjas AI - Clinical Decision Support System
 
-**An AI Multi-Agent Clinical Decision Support System for Early Sepsis and Mortality Prediction.**
+PraOjas AI is a next-generation, multi-agent Clinical Decision Support System (CDSS) tailored for the Intensive Care Unit (ICU). It continuously monitors patients' vitals, labs, and clinical notes to predict critical events such as Sepsis and Mortality, leveraging an orchestrated ensemble of AI agents.
 
-Developed for the **Kaggle AI Agents: Intensive Vibe Coding Capstone** (Track: Agents for Good).
+## Architecture
 
-This project bridges **existing PyTorch research** into a production-grade **Multi-Agent System (MAS)**. It takes a Self-Supervised Multimodal Transformer (which fuses clinical text via Bio_ClinicalBERT and time-series vitals via a Temporal Transformer) and wraps it in a Google Agent Development Kit (ADK) inspired architecture.
+The system is split into two primary layers:
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![React](https://img.shields.io/badge/React-19-cyan)
-![Google Gemini](https://img.shields.io/badge/AI-Gemini%202.5-orange)
-![MIMIC--IV](https://img.shields.io/badge/Data-MIMIC--IV-lightgrey)
+1. **Frontend (Vite + React)**:
+   - Built with React, Tailwind CSS, and Framer Motion.
+   - Provides a real-time, responsive dashboard for clinicians.
+   - Features dynamic risk gauges, handoff summaries, and explainable AI panels.
 
-## 🧠 Core Concept & Value
+2. **Backend (Express + Node.js)**:
+   - **Routes**: Located in `server/routes.ts`, providing secure API endpoints.
+   - **Security**: Hardened with `helmet` for HTTP headers, `express-rate-limit` to prevent brute force attacks, and a simulated authentication middleware (`server/middleware/auth.ts`).
+   - **Observability**: Uses `pino` for structured JSON logging (`server/utils/logger.ts`), which is essential for professional log aggregation (e.g., Datadog, Splunk).
+   - **Agents**: A multi-agent system orchestrating specialized tasks:
+     - `MonitoringAgent`: Continuously scans vitals for autonomous alerts.
+     - `CoordinatorAgent`: Orchestrates sub-agents and handles retry logic.
+     - `PredictionAgent`: Runs the LLM-based sepsis/mortality models.
+     - `DocumentUnderstandingAgent`: Parses PDFs and free-text notes.
+     - `MedicalKnowledgeAgent`: Cross-references clinical guidelines (e.g., Sepsis-3).
 
-In ICU settings, early deterioration signs are spread across unstructured clinical notes and noisy time-series vitals. The **PraOjas Multimodal Transformer** solves this by pretraining on MIMIC-IV data to achieve:
-- **Sepsis AUROC:** 0.799 (ECE: 0.059)
-- **Mortality AUROC:** 0.819 (ECE: 0.136)
+## Setup & Execution
 
-This repository takes those research artifacts and builds an **AI Agent ecosystem** to make these predictions actionable, explainable, and secure for clinical staff at the point of care.
+### Prerequisites
+- Node.js (v18 or higher)
+- NPM or PNPM
+- A valid Gemini API Key (`GEMINI_API_KEY`)
 
-## 🤖 Multi-Agent Architecture
-
-The system utilizes an Express.js Model Context Protocol (MCP) layer orchestrating several specialized agents:
-
-1. **Coordinator Agent:** Orchestrates the workflow, routes physician requests, and delegates tasks to sub-agents.
-2. **Document Understanding Agent:** Parses uploaded PDFs, CSVs, and text to extract structured clinical data.
-3. **Validation Agent:** Validates extracted vitals and labs for anomalous or missing values.
-4. **Clinical NLP Agent:** Extracts medical entities (diagnoses, medications, symptoms) from unstructured clinical notes.
-5. **Prediction Agent:** Ingests structured clinical data to run the multimodal Transformer model. (The LLM never generates predictions; it strictly calls the existing PyTorch model).
-6. **Medical Knowledge / Explainability Agent:** Uses Gemini 2.5 to cross-reference predictions with standard Sepsis Bundles and generates natural language clinical explanations mimicking SHAP / Integrated Gradients.
-7. **Clinical Report Agent:** Generates the final clinician-friendly PDF/JSON risk summary and recommended next steps.
-
-## 🏗️ Enterprise Repository Structure
-
-```
-/
-├── server/
-│   ├── agents/      # MAS Logic (Coordinator, Prediction, Explainability, NLP, etc.)
-│   └── mcp/         # Model Context Protocol servers (BigQuery, Drive, PDF)
-├── src/             # Frontend Dashboard (React 19, Vite, Tailwind, Recharts)
-├── frontend/        # Microservice placeholder for decoupled frontend
-├── backend/         # Microservice placeholder for decoupled API
-├── models/          # Wrapper for the PraOjas PyTorch Transformer inference endpoint
-├── services/        # Third-party integrations (GCP Logging, Secret Manager)
-├── architecture/    # System design diagrams and workflows
-├── deployment/      # Dockerfiles, Cloud Run, Terraform configs
-├── docs/            # API specs, Kaggle writeups
-└── tests/           # Unit and Integration test suites
+### Environment Variables
+Create a `.env` file in the root directory:
+```env
+PORT=3000
+GEMINI_API_KEY=your_api_key_here
+LOG_LEVEL=info
+NODE_ENV=development
 ```
 
-## 🛠️ Technology Stack (Google Ecosystem)
+### Installation
+```bash
+npm install
+```
 
-- **AI Models:** Google Gemini 2.5 Flash SDK (`@google/genai`) for knowledge and explainability.
-- **Backend / MCP Server:** Node.js/Express acting as the API gateway and agent orchestrator.
-- **Frontend:** React 19, Vite, Tailwind CSS, Recharts, Framer Motion.
-- **Security:** API keys isolated in the Node server environment (no browser exposure). Secure enclave pattern.
+### Running the Application
+```bash
+# Start the development server (runs both frontend and backend concurrently via TSX and Vite middleware)
+npm run dev
+```
 
-## 🚀 How to Run
+### Testing
+This project uses `vitest` for both frontend and backend unit testing.
+```bash
+# Run the test suite
+npm run test
+```
 
-1. Create a `.env` file from `.env.example` and supply your `GEMINI_API_KEY`.
-2. Install dependencies: `npm install`
-3. Start the Multi-Agent full-stack application: `npm run dev` (Runs Vite + Express concurrently on port 3000).
+## Engineering Health
 
-## 📊 Features & Kaggle Evaluation Criteria
-
-* **Technical Implementation:** Demonstrates dynamic document parsing, validation, and multi-agent coordination.
-* **Explainability:** Replaces opaque ML outputs with transparent, actionable natural language reasoning.
-* **Security & Privacy:** Enforces a "Secure Enclave" pattern. The frontend handles no AI credentials.
-
-*Original Research Artifacts: The raw PyTorch training notebooks, bio_clinical_ssl_trained checkpoints, and evaluation results are maintained in the core ML repository.*
+- **Code Quality**: Linting enforced via TypeScript (`npm run lint`).
+- **Security**: API endpoints are secured with rate limiting, helmet, and mock JWT authentication.
+- **Testing**: Configured with `vitest`, `@testing-library/react`, and `supertest`.
+- **Complexity**: The monolithic `App.tsx` has been partially refactored to support a scalable `src/components/` and `src/pages/` architecture for enterprise use.

@@ -3,92 +3,71 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import multer from 'multer';
-import { PDFParse } from 'pdf-parse';
 import { CoordinatorAgent } from './server/agents/CoordinatorAgent';
+import { MonitoringAgent, PatientAlert } from './server/agents/MonitoringAgent';
+import { isDbConfigured } from './src/db';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { logger } from './server/utils/logger';
+import { createRouter } from './server/routes';
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
-
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const upload = multer({ storage: multer.memoryStorage() });
+
+// ── Security & Middleware ──────────────────────────────────────────────────
+app.use(helmet({ contentSecurityPolicy: false })); // Disabled CSP for dev ease
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+}));
 
 app.use(express.json());
 
+// ── Startup Diagnostics ────────────────────────────────────────────────────
+if (!process.env.GEMINI_API_KEY) {
+  logger.warn('⚠️ GEMINI_API_KEY is not set. AI agents will fail.');
+} else {
+  logger.info('✅ GEMINI_API_KEY is configured.');
+}
 
-// Init Coordinator Agent
+if (!isDbConfigured()) {
+  logger.warn('⚠️ Database not configured. Using in-memory agent memory.');
+} else {
+  logger.info('✅ Database configured. Persistent memory enabled.');
+}
+
+// ── Init Agents ────────────────────────────────────────────────────────────
 const coordinatorAgent = new CoordinatorAgent(process.env.GEMINI_API_KEY || '');
+const monitoringAgent = new MonitoringAgent(process.env.GEMINI_API_KEY || '');
 
-// Coordinator Agent APIs
-app.post('/api/predict', async (req, res) => {
-  const { patient } = req.body;
-  if (!patient) return res.status(400).json({ error: 'Patient data is required' });
+// ── SSE Alert Subscribers ──────────────────────────────────────────────────
+// Each connected browser client is stored here for SSE push
+const sseClients: Set<express.Response> = new Set();
 
-  try {
-    const prediction = await coordinatorAgent.handlePredictionRequest(patient);
-    res.json(prediction);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to run prediction.' });
-  }
-});
-
-// Explainability API (Delegates to Coordinator Agent)
-app.post('/api/explain', async (req, res) => {
-  const { patient, prediction } = req.body;
-  
-  try {
-    const explanationData = await coordinatorAgent.handleExplanationRequest(patient, prediction);
-    res.json(explanationData);
-  } catch (error: any) {
-    console.error('Error generating explanation:', error);
-    res.status(500).json({ error: 'Failed to generate explanation.' });
-  }
-});
-
-// Smart Vitals API (Delegates to Coordinator Agent)
-app.post('/api/smart-vitals', async (req, res) => {
-  const { patient } = req.body;
-  if (!patient) return res.status(400).json({ error: 'Patient data is required' });
-
-  try {
-    const suggestedVitals = await coordinatorAgent.handleSmartVitalsRequest(patient);
-    res.json(suggestedVitals);
-  } catch (error: any) {
-    console.error('Error generating smart vitals:', error);
-    res.status(500).json({ error: 'Failed to generate smart vitals.' });
-  }
-});
-
-// Document Upload API
-app.post('/api/parse-document', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+// When monitoring agent fires an alert, push it to all connected SSE clients
+monitoringAgent.subscribe((alert: PatientAlert) => {
+  const data = `data: ${JSON.stringify(alert)}\n\n`;
+  sseClients.forEach(client => {
+    try {
+      client.write(data);
+    } catch {
+      sseClients.delete(client);
     }
-
-    let documentText = '';
-    const fileMimeType = req.file.mimetype;
-    
-    if (fileMimeType === 'application/pdf') {
-      const parser = new PDFParse({ data: req.file.buffer });
-      const data = await parser.getText();
-      documentText = data.text;
-    } else {
-      documentText = req.file.buffer.toString('utf-8');
-    }
-
-    const structuredData = await coordinatorAgent.handleDocumentUpload(documentText);
-    res.json(structuredData);
-  } catch (error: any) {
-    console.error('Error parsing document:', error);
-    res.status(500).json({ error: 'Failed to parse document.' });
-  }
+  });
 });
 
-import { db } from './src/db';
-import { patientHistory } from './src/db/schema';
-import crypto from 'crypto';
+// ── Start Autonomous Monitoring ────────────────────────────────────────────
+monitoringAgent.start();
 
+// ── API Routes ─────────────────────────────────────────────────────────────
+const apiRouter = createRouter(coordinatorAgent, monitoringAgent, sseClients);
+app.use('/api', apiRouter);
+
+// ── Server Startup ─────────────────────────────────────────────────────────
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -99,14 +78,19 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    app.get('*', (_req, _res) => {
+      _res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`PraOjas AI Backend running on http://0.0.0.0:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`🚀 PraOjas AI is running at http://localhost:${PORT}`);
+    logger.info(`   Autonomous Monitoring Agent: ACTIVE (60s interval)`);
+    logger.info(`   SSE Alerts endpoint: http://localhost:${PORT}/api/alerts/stream`);
   });
 }
 
-startServer();
+startServer().catch((err) => {
+  logger.error(err, 'Fatal startup error');
+  process.exit(1);
+});

@@ -1,96 +1,107 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type, Tool } from '@google/genai';
+import { ModelRouter } from './ModelRouter.js';
 
 export class PredictionAgent {
-  private ai: GoogleGenAI;
+  private router: ModelRouter;
 
   constructor(apiKey: string) {
-    this.ai = new GoogleGenAI({ apiKey });
+    this.router = new ModelRouter(apiKey, true); // true = use tuned model for prediction
   }
 
   /**
-   * Purpose: Uses Gemini as a zero/few-shot predictor for sepsis and mortality forecasting.
+   * Purpose: Uses an LLM-based clinical predictor for sepsis and mortality forecasting,
+   * leveraging historical memory and strict native function calling.
    */
-  async predict(patientData: any) {
-    console.log(`[Prediction Agent] Calling Gemini model for predictions`);
+  async predict(patientData: any, historicalContext: any[] = []) {
+    console.log(`[Prediction Agent] Running clinical prediction model`);
     
+    // Format historical context for Few-Shot RAG
+    const fewShotText = historicalContext.length > 0 
+      ? `\n\nHISTORICAL REFERENCE CASES (Similar Patients):\n` + historicalContext.map(h => 
+          `- Case ${h.id}: Age ${h.age} ${h.gender}. Vitals: HR ${h.vitals.hr}, Temp ${h.vitals.temp}, RR ${h.vitals.rr}, BP ${h.vitals.bp}. Labs: WBC ${h.labs?.wbc}, Lactate ${h.labs?.lactate}. Outcome: Sepsis=${h.didDevelopSepsis}, Mortality=${h.mortalityOutcome}. Notes: ${h.note || ''}`
+        ).join('\n')
+      : '';
+
     const prompt = `
-      You are an expert clinical predictive model. Analyze the following patient data 
-      and predict the probability of Sepsis and the probability of Mortality.
-      Return the response in JSON format.
-      
-      Patient Data:
+      You are an expert clinical predictive AI. Analyze the patient data and predict Sepsis and Mortality probabilities.
+      Apply clinical rules such as qSOFA (RR >= 22, Altered Mentation, Systolic BP <= 100) and standard Sepsis-3 criteria (Lactate > 2.0).
+      ${fewShotText}
+
+      CURRENT PATIENT DATA:
+      Age: ${patientData.age} ${patientData.gender}
       Vitals: ${JSON.stringify(patientData.vitals)}
       Labs: ${JSON.stringify(patientData.labs)}
       Clinical Notes: ${patientData.clinicalNotes || 'None'}
       
-      Predict the probabilities (between 0.0 and 1.0, where 1.0 is 100% chance).
+      Call the tool 'predict_outcomes' with your final probabilities.
     `;
 
-    try {
-      const modelName = process.env.GEMINI_TUNED_MODEL_NAME || 'gemini-1.5-pro';
-      const response = await this.ai.models.generateContent({
-        model: modelName,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
+    const predictOutcomesTool: Tool = {
+      functionDeclarations: [
+        {
+          name: 'predict_outcomes',
+          description: 'Records the predicted probabilities for sepsis and mortality.',
+          parameters: {
             type: Type.OBJECT,
             properties: {
-              sepsisProbability: {
-                type: Type.NUMBER,
-                description: "Probability of sepsis (0.0 to 1.0)"
-              },
-              mortalityProbability: {
-                type: Type.NUMBER,
-                description: "Probability of mortality (0.0 to 1.0)"
-              },
-              confidenceScore: {
-                type: Type.NUMBER,
-                description: "Your confidence in this prediction (0.0 to 1.0)"
-              }
+              sepsisProbability: { type: Type.NUMBER, description: "Probability of sepsis (0.0 to 1.0)" },
+              mortalityProbability: { type: Type.NUMBER, description: "Probability of mortality (0.0 to 1.0)" },
+              confidenceScore: { type: Type.NUMBER, description: "Confidence in this prediction (0.0 to 1.0)" }
             },
             required: ["sepsisProbability", "mortalityProbability", "confidenceScore"]
           }
         }
+      ]
+    };
+
+    try {
+      const response = await this.router.generateContent({
+        contents: prompt,
+        config: {
+          temperature: 0.1,
+          tools: [predictOutcomesTool]
+        }
       });
       
-      let parsed;
-      try {
-        parsed = JSON.parse(response.text || '{}');
-      } catch (e) {
-        throw new Error('Failed to parse Gemini response');
+      // Extract function call arguments
+      let parsed = null;
+      if (response.functionCalls && response.functionCalls.length > 0) {
+        parsed = response.functionCalls[0].args;
+      } else if (response.text) {
+        // Fallback if model ignored tool and returned text
+        const cleanedText = response.text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(cleanedText);
+      }
+
+      if (!parsed || parsed.sepsisProbability === undefined) {
+        throw new Error('Invalid or missing function call arguments');
+      }
+
+      // Coerce to numbers to prevent NaN if model returns strings
+      const sepsisProb    = Number(parsed.sepsisProbability);
+      const mortalityProb = Number(parsed.mortalityProbability);
+      const confidence    = Number(parsed.confidenceScore);
+
+      if (isNaN(sepsisProb) || isNaN(mortalityProb) || isNaN(confidence)) {
+        throw new Error(`Model returned non-numeric values: ${JSON.stringify(parsed)}`);
       }
 
       return {
-        sepsisProbability: parsed.sepsisProbability || 0.1,
-        mortalityProbability: parsed.mortalityProbability || 0.05,
-        confidenceScore: parsed.confidenceScore || 0.8,
+        sepsisProbability: Math.max(0, Math.min(1, sepsisProb)),
+        mortalityProbability: Math.max(0, Math.min(1, mortalityProb)),
+        confidenceScore: Math.max(0, Math.min(1, confidence)),
         timestamp: new Date().toISOString(),
         modelMetadata: {
-          name: process.env.GEMINI_TUNED_MODEL_NAME ? `Tuned Gemini Model (${process.env.GEMINI_TUNED_MODEL_NAME})` : "Gemini 1.5 Pro Predictive Agent",
-          sepsisAuroc: "N/A (LLM)",
-          mortalityAuroc: "N/A (LLM)",
-          sepsisEce: "N/A (LLM)",
-          mortalityEce: "N/A (LLM)"
+          name: `PraOjas Clinical Engine`,
+          sepsisAuroc: "N/A (Agentic)",
+          mortalityAuroc: "N/A (Agentic)",
+          sepsisEce: "N/A (Agentic)",
+          mortalityEce: "N/A (Agentic)"
         }
       };
     } catch (error) {
-      console.error("[Prediction Agent] Failed to call Gemini model:", error);
-      // Fallback
-      return {
-        sepsisProbability: 0.1,
-        mortalityProbability: 0.05,
-        confidenceScore: 0.5,
-        timestamp: new Date().toISOString(),
-        modelMetadata: {
-          name: "Predictive Agent (Fallback)",
-          sepsisAuroc: "N/A (LLM)",
-          mortalityAuroc: "N/A (LLM)",
-          sepsisEce: "N/A (LLM)",
-          mortalityEce: "N/A (LLM)"
-        }
-      };
+      console.error("[Prediction Agent] Model inference failed:", error);
+      throw error; // Let the RetryOrchestrator catch this
     }
   }
 }
-

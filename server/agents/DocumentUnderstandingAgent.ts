@@ -1,10 +1,11 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type, Tool } from '@google/genai';
+import { ModelRouter } from './ModelRouter.js';
 
 export class DocumentUnderstandingAgent {
-  private ai: GoogleGenAI;
+  private router: ModelRouter;
 
   constructor(apiKey: string) {
-    this.ai = new GoogleGenAI({ apiKey });
+    this.router = new ModelRouter(apiKey);
   }
 
   async parseDocument(documentText: string) {
@@ -42,17 +43,16 @@ export class DocumentUnderstandingAgent {
     `;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+      const response = await this.router.generateContent({
         contents: prompt,
         config: {
-            temperature: 0.2
+          responseMimeType: 'application/json',
         }
       });
 
       let responseText = response.text || "{}";
       // Clean markdown if present
-      responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      responseText = responseText.replace(/\`\`\`json/g, "").replace(/\`\`\`/g, "").trim();
       
       const parsedData = JSON.parse(responseText);
       return parsedData;
