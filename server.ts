@@ -18,7 +18,12 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 const upload = multer({ storage: multer.memoryStorage() });
 
 // ── Security & Middleware ──────────────────────────────────────────────────
-app.use(helmet({ contentSecurityPolicy: false })); // Disabled CSP for dev ease
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet());
+} else {
+  // Keep CSP relaxed in development for tooling compatibility (e.g., Vite HMR)
+  app.use(helmet({ contentSecurityPolicy: false }));
+}
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
