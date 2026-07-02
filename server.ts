@@ -21,8 +21,19 @@ const upload = multer({ storage: multer.memoryStorage() });
 if (process.env.NODE_ENV === 'production') {
   app.use(helmet());
 } else {
-  // Keep CSP relaxed in development for tooling compatibility (e.g., Vite HMR)
-  app.use(helmet({ contentSecurityPolicy: false }));
+  // Keep CSP enabled in development while allowing tooling compatibility (e.g., Vite HMR)
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
+        },
+      },
+    })
+  );
 }
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
