@@ -28,7 +28,7 @@ export class MonitoringAgent {
   private patientRegistry: Map<string, any> = new Map();
   private alertSubscribers: Set<(alert: PatientAlert) => void> = new Set();
   private intervalHandle: NodeJS.Timeout | null = null;
-  private readonly INTERVAL_MS = 5 * 60_000; // 5 minutes — reduces API calls
+  private readonly INTERVAL_MS = 15_000; // 15 seconds — ideal for demo purposes
 
   constructor(apiKey: string) {
     this.predictionAgent = new PredictionAgent(apiKey);

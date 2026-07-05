@@ -2,6 +2,8 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 import { Users, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
 
+import { Patient } from '../App';
+
 const sepsisData = [
   { time: '00:00', risk: 12 },
   { time: '04:00', risk: 15 },
@@ -12,13 +14,16 @@ const sepsisData = [
   { time: '24:00', risk: 20 },
 ];
 
-const patientStatus = [
-  { name: 'Stable', count: 24, fill: '#10b981' },
-  { name: 'Observation', count: 12, fill: '#3b82f6' },
-  { name: 'Critical', count: 4, fill: '#ef4444' },
-];
-
-export default function DashboardView() {
+export default function DashboardView({ patients = [] }: { patients?: Patient[] }) {
+  const stableCount = patients.filter(p => p.status === 'Stable').length;
+  const warningCount = patients.filter(p => p.status === 'Warning').length;
+  const criticalCount = patients.filter(p => p.status === 'Critical').length;
+  
+  const patientStatus = [
+    { name: 'Stable', count: stableCount, fill: '#10b981' },
+    { name: 'Warning', count: warningCount, fill: '#f59e0b' },
+    { name: 'Critical', count: criticalCount, fill: '#ef4444' },
+  ];
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] p-8 text-slate-900 dark:text-white transition-colors">
       <div className="mb-8">
@@ -33,7 +38,7 @@ export default function DashboardView() {
             <Users className="w-8 h-8" />
           </div>
           <div>
-            <div className="text-3xl font-bold">40</div>
+            <div className="text-3xl font-bold">{patients.length || 40}</div>
             <div className="text-sm text-slate-500 dark:text-slate-400">Total ICU Beds Active</div>
           </div>
         </div>
@@ -43,7 +48,7 @@ export default function DashboardView() {
             <AlertTriangle className="w-8 h-8" />
           </div>
           <div>
-            <div className="text-3xl font-bold">4</div>
+            <div className="text-3xl font-bold">{criticalCount}</div>
             <div className="text-sm text-slate-500 dark:text-slate-400">Critical Patients</div>
           </div>
         </div>

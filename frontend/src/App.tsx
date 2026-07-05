@@ -770,26 +770,52 @@ export function PredictionPanel({ patient }: { patient: Patient }) {
 // ─────────────────────────────────────────────────────────
 
 export function ExplainabilityPanel({ patient }: { patient: Patient }) {
-  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [traceStep, setTraceStep] = useState(0);
+  const [reportData, setReportData] = useState<any>(null);
 
   const steps = ["NLP Extraction", "Knowledge Analysis", "Report Generation"];
 
-  function handleGenerateReport() {
+  async function handleGenerateReport() {
     setState("loading");
     setTraceStep(0);
     let s = 0;
     const iv = setInterval(() => {
-      s++;
-      setTraceStep(s);
-      if (s >= steps.length - 1) {
-        clearInterval(iv);
-        setTimeout(() => setState("done"), 600);
+      if (s < steps.length - 1) {
+        s++;
+        setTraceStep(s);
       }
     }, 900);
+
+    try {
+      const predRes = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient })
+      });
+      const prediction = await predRes.json();
+      if (!predRes.ok) throw new Error(prediction.error);
+      
+      const expRes = await fetch('/api/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient, prediction })
+      });
+      const data = await expRes.json();
+      if (!expRes.ok) throw new Error(data.error);
+      
+      setReportData(data);
+      clearInterval(iv);
+      setTraceStep(steps.length - 1);
+      setTimeout(() => setState("done"), 600);
+    } catch (err) {
+      console.error(err);
+      clearInterval(iv);
+      setState("error");
+    }
   }
 
-  const riskFactors = [
+  const riskFactors = reportData?.report?.keyRiskFactors?.map((text: string) => ({ text, severity: "warning" })) || [
     { text: `Lactate ${patient.labs.lactate} mmol/L — tissue hypoperfusion marker`, severity: "critical" as const },
     { text: `WBC ${patient.labs.wbc} ×10³/μL — systemic inflammatory response`, severity: "critical" as const },
     { text: `Heart rate ${patient.vitals.hr} bpm — persistent tachycardia`, severity: "warning" as const },
@@ -797,19 +823,22 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
     { text: `Creatinine ${patient.labs.creatinine} mg/dL — AKI risk`, severity: "warning" as const },
   ];
 
-  // Generate patient-specific next steps based on their actual clinical data
-  const nextSteps: string[] = [];
-  if (patient.labs.lactate > 2) nextSteps.push(`Repeat lactate measurement in 2–4 hours (current: ${patient.labs.lactate} mmol/L)`);
-  if (patient.sepsisRisk >= 50) nextSteps.push("Obtain blood cultures × 2 and reassess antibiotic coverage");
-  if (parseInt(patient.vitals.bp) < 90) nextSteps.push("Reassess vasopressor requirements and titrate to MAP >65 mmHg");
-  if (patient.labs.creatinine > 1.3) nextSteps.push(`Nephrology consult for AKI monitoring (Creatinine: ${patient.labs.creatinine} mg/dL)`);
-  if (patient.vitals.spo2 < 94) nextSteps.push(`Evaluate oxygenation strategy — current SpO₂ ${patient.vitals.spo2}%`);
-  if (patient.vitals.hr > 100) nextSteps.push(`Monitor persistent tachycardia (HR ${patient.vitals.hr} bpm) — rule out dehydration, pain, or cardiac event`);
-  if (patient.labs.wbc > 12) nextSteps.push("Initiate daily SOFA scoring for organ dysfunction tracking");
-  if (nextSteps.length === 0) nextSteps.push("Continue current management and monitor for clinical changes", "Plan for step-down to intermediate care if stable overnight");
+  const nextStepsFallback: string[] = [];
+  if (patient.labs.lactate > 2) nextStepsFallback.push(`Repeat lactate measurement in 2–4 hours (current: ${patient.labs.lactate} mmol/L)`);
+  if (patient.sepsisRisk >= 50) nextStepsFallback.push("Obtain blood cultures × 2 and reassess antibiotic coverage");
+  if (parseInt(patient.vitals.bp) < 90) nextStepsFallback.push("Reassess vasopressor requirements and titrate to MAP >65 mmHg");
+  if (patient.labs.creatinine > 1.3) nextStepsFallback.push(`Nephrology consult for AKI monitoring (Creatinine: ${patient.labs.creatinine} mg/dL)`);
+  if (patient.vitals.spo2 < 94) nextStepsFallback.push(`Evaluate oxygenation strategy — current SpO₂ ${patient.vitals.spo2}%`);
+  if (patient.vitals.hr > 100) nextStepsFallback.push(`Monitor persistent tachycardia (HR ${patient.vitals.hr} bpm) — rule out dehydration, pain, or cardiac event`);
+  if (patient.labs.wbc > 12) nextStepsFallback.push("Initiate daily SOFA scoring for organ dysfunction tracking");
+  if (nextStepsFallback.length === 0) nextStepsFallback.push("Continue current management and monitor for clinical changes", "Plan for step-down to intermediate care if stable overnight");
 
-  // Generate patient-specific NLP entities from their actual clinical notes and medications
-  const nlpEntities = {
+  const executiveSummary = reportData?.report?.executiveSummary || 
+    `${patient.name} (${patient.age}y ${patient.gender}) presents with ${patient.status.toLowerCase()} physiology. Sepsis risk is ${patient.sepsisRisk}%.`;
+
+  const finalNextSteps = reportData?.recommendations?.immediateInterventions || reportData?.report?.recommendedNextSteps || nextStepsFallback;
+
+  const nlpEntities = reportData?.nlpEntities || {
     diagnoses: extractDiagnoses(patient),
     medications: patient.medications.map(m => m.name),
     symptoms: extractSymptoms(patient),
@@ -848,6 +877,16 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
             <p className="text-xs text-muted-foreground mt-1">Click "Generate Report" for clinical recommendations</p>
           </div>
         )}
+        
+        {state === "error" && (
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
+            <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-3">
+              <AlertTriangle className="w-6 h-6 text-rose-500/70" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">Error generating report</p>
+            <p className="text-xs text-muted-foreground mt-1">Please try again or check backend logs.</p>
+          </div>
+        )}
 
         {state === "loading" && (
           <div className="flex flex-col justify-center h-full min-h-[300px] space-y-4">
@@ -884,7 +923,7 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Executive Summary</h3>
               <p className="text-sm text-foreground leading-relaxed p-3 bg-secondary/50 rounded-xl border border-border">
-                {patient.name} ({patient.age}y {patient.gender}) presents with high-acuity septic physiology. Elevated lactate ({patient.labs.lactate} mmol/L), leukocytosis ({patient.labs.wbc} ×10³/μL), and hemodynamic instability indicate organ hypoperfusion. Composite sepsis risk score is <span className={`font-bold ${patient.sepsisRisk >= 60 ? "text-rose-500 dark:text-rose-400" : "text-amber-600 dark:text-amber-400"}`}>{patient.sepsisRisk}%</span>. Immediate resuscitation and source control are priority interventions.
+                {executiveSummary}
               </p>
             </div>
 
@@ -907,7 +946,7 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Recommended Next Steps</h3>
               <ol className="space-y-1.5">
-                {nextSteps.map((step, i) => (
+                {finalNextSteps.map((step, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-foreground">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                     {step}
@@ -1060,6 +1099,17 @@ function AppContent() {
   const [patients, setPatients] = useState<Patient[]>(MOCK_PATIENTS);
   const [showAddPatient, setShowAddPatient] = useState(false);
 
+  useEffect(() => {
+    // Sync patients to backend for autonomous monitoring
+    patients.forEach(patient => {
+      fetch('/api/patients/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient })
+      }).catch(console.error);
+    });
+  }, [patients]);
+
   const login = () => {
     localStorage.setItem("praojas_auth", "true");
     setIsAuthenticated(true);
@@ -1147,11 +1197,12 @@ function AppContent() {
       } />
       
       {/* Protected Routes */}
-      <Route path="/dashboard" element={<AppLayout><DashboardView /></AppLayout>} />
+      <Route path="/dashboard" element={<AppLayout><DashboardView patients={patients} /></AppLayout>} />
       <Route path="/patients" element={<AppLayout><RosterView patients={patients} onSelectPatient={(p) => window.location.href = `/patient/${p.id}`} /></AppLayout>} />
       <Route path="/patient/:id" element={<AppLayout><PatientDashboardWrapper /></AppLayout>} />
       <Route path="/patient/:id/analysis" element={<AppLayout><AnalysisWrapper /></AppLayout>} />
       <Route path="/alerts" element={<AppLayout><AlertsView /></AppLayout>} />
+      <Route path="/reports" element={<AppLayout><div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] p-8 transition-colors"><h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Reports</h1><p className="text-slate-500 dark:text-slate-400">Reports module coming soon.</p></div></AppLayout>} />
       <Route path="/settings" element={<AppLayout><SettingsView /></AppLayout>} />
       
       <Route path="*" element={<Navigate to="/" />} />

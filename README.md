@@ -47,8 +47,9 @@ PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CD
 - 📄 **Clinical Document Understanding** — Parse PDFs, CSVs, and plain-text clinical notes
 - 💡 **Explainable AI** — Feature importance, clinical entity extraction, and human-readable explanations
 - 📋 **Smart Recommendations** — Evidence-based clinical guidelines (Sepsis-3, SIRS criteria)
+- 🔌 **Active MCP Server** — Standardized Model Context Protocol (MCP) server for tool calling capabilities
 - 🔒 **Secure REST APIs** — Rate limiting, helmet security, simulated JWT authentication
-- 📊 **Structured Logging** — JSON-based logging with pino for enterprise log aggregation (Datadog, Splunk)
+- 📊 **Structured Logging** — JSON-based logging with pino for enterprise log aggregation
 - 🧪 **Comprehensive Testing** — Vitest unit tests, Supertest API tests, React component tests
 
 ---
@@ -707,7 +708,6 @@ gcloud run deploy praojas-ai \
 - 📊 **Advanced Analytics** — Population-level trend analysis and forecasting
 
 ### Phase 4: Ecosystem Expansion
-- ⚙️ **MCP Server Support** — Custom Model Context Protocol implementations
 - 🤝 **Third-Party Integrations** — Slack alerts, Microsoft Teams, Pagerduty
 - 📈 **Clinical Trial Integration** — Support for trial patient cohorts
 - 🎓 **Medical Education** — Learning modules for medical students/residents
