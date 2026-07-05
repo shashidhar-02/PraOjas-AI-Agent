@@ -691,7 +691,7 @@ app.use(cors({
 *User profile, security settings, authentication management, and HIPAA compliance options*
 
 <div style="text-align: center; margin: 20px 0;">
-  <a href="https://drive.google.com/file/d/1g_VdqaflV8sGSY54EVayFlig_1s3MUHg/view?usp=sharing" target="_blank" rel="noopener noreferrer">
+  <a href="https://drive.google.com/file/d/1_0xdNFiWGp1TA_2PV8QzlNRhuPjEaVoy/view?usp=sharing" target="_blank" rel="noopener noreferrer">
     <img src="https://lh3.googleusercontent.com/d/1_0xdNFiWGp1TA_2PV8QzlNRhuPjEaVoy=w400" alt="Settings & Preferences" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;">
   </a>
   <p><strong>Click to view full screenshot</strong></p>
