@@ -93,7 +93,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(process.cwd(), 'frontend', 'dist');
     app.use(express.static(distPath));
     app.get('*', (_req, _res) => {
       _res.sendFile(path.join(distPath, 'index.html'));
