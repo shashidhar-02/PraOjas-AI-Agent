@@ -796,7 +796,7 @@ git clone https://github.com/YOUR_USERNAME/PraOjas-AI-Agent.git
 cd PraOjas-AI-Agent
 
 # 3. Add upstream remote
-git remote add upstream https://github.com/shashidhar-02/PraOjas-AI-Agent.git
+git remote add upstream https://github.com/AbhinavVajinapalli/PraOjas-AI-Agent.git
 ```
 
 ### Create a Feature Branch
