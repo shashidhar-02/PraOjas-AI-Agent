@@ -649,13 +649,17 @@ app.use(cors({
 ### 2. ICU Overview Dashboard
 *High-level analytics with risk trends, patient status distribution, and key metrics (6 active ICU beds, 2 critical patients, 39% average sepsis risk)*
 
-<div style="text-align: center; margin: 20px 0;">
-  <a href="https://drive.google.com/file/d/1_0xdNFiWGp1TA_2PV8QzlNRhuPjEaVoy/view?usp=sharing" target="_blank" rel="noopener noreferrer">
-    <img src="https://lh3.googleusercontent.com/d/1g_VdqaflV8sGSY54EVayFlig_1s3MUHg=w400" alt="ICU Overview Dashboard" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;">
+<p align="center">
+  <a href="https://drive.google.com/file/d/1rZw31A9F-4NFu_Xptp-ufi-7JTnwwdc8/view?usp=drive_link">
+    <img src="https://drive.google.com/uc?export=view&id=1rZw31A9F-4NFu_Xptp-ufi-7JTnwwdc8"
+         alt="Project Screenshot"
+         width="900">
   </a>
-  <p><strong>Click to view full screenshot</strong></p>
-</div>
+</p>
 
+<p align="center">
+  <b>Click the image to view it in full size.</b>
+</p>
 ### 3. ICU Roster Overview
 *Detailed patient registry with real-time vitals, sepsis risk scores, and patient status indicators (Critical/Warning/Stable)*
 
