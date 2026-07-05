@@ -14,35 +14,42 @@ export default function GlobalAlerts() {
   const [alerts, setAlerts] = useState<AlertData[]>([]);
 
   useEffect(() => {
-    // Simulate real-time alerts
-    const timer = setInterval(() => {
-      // Randomly trigger an alert 15% of the time every 10 seconds
-      if (Math.random() > 0.85) {
-        const newAlert: AlertData = {
-          id: Math.random().toString(36).substring(7),
-          patientName: ['John Doe', 'Sarah Chen', 'Emma Wilson', 'Michael Torres'][Math.floor(Math.random() * 4)],
-          patientId: `P-10${Math.floor(Math.random() * 500)}`,
-          message: ['Lactate level critically high (4.2 mmol/L)', 'Sepsis Risk Score exceeded 80%', 'Heart rate dropping below 40 bpm'][Math.floor(Math.random() * 3)],
-          timestamp: new Date(),
-        };
-        
-        // Play sound
-        try {
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-          audio.volume = 0.5;
-          audio.play().catch(() => {});
-        } catch (e) {}
+    const eventSource = new EventSource('/api/alerts/stream');
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'alert' && (data.payload.level === 'CRITICAL' || data.payload.level === 'WARNING')) {
+          const newAlert: AlertData = {
+            id: data.payload.id || Math.random().toString(36).substring(7),
+            patientName: data.payload.patientName,
+            patientId: data.payload.patientId,
+            message: data.payload.description,
+            timestamp: new Date(),
+          };
+          
+          // Play sound
+          try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
+          } catch (e) {}
 
-        setAlerts(prev => [...prev, newAlert]);
-        
-        // Auto-remove after 8 seconds
-        setTimeout(() => {
-          setAlerts(prev => prev.filter(a => a.id !== newAlert.id));
-        }, 8000);
+          setAlerts(prev => [...prev, newAlert]);
+          
+          // Auto-remove after 8 seconds
+          setTimeout(() => {
+            setAlerts(prev => prev.filter(a => a.id !== newAlert.id));
+          }, 8000);
+        }
+      } catch (err) {
+        console.error("Failed to parse SSE data in GlobalAlerts", err);
       }
-    }, 10000);
+    };
 
-    return () => clearInterval(timer);
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   const removeAlert = (id: string) => {

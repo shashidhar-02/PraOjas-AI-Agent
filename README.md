@@ -72,27 +72,27 @@ PraOjas AI automates risk assessment, provides explainable predictions, and gene
 
 ```mermaid
 graph TD
-    subgraph Frontend [Frontend (React + Tailwind)]
+    subgraph Frontend ["Frontend (React + Tailwind)"]
         DB[Dashboard] --> API
         P[Patients View] --> API
         A[Real-time Alerts] --> API
         S[Settings] --> API
     end
 
-    subgraph Backend [Backend (Node.js + Express)]
+    subgraph Backend ["Backend (Node.js + Express)"]
         API[Secure REST API] --> R[Router]
         R --> C[Coordinator Agent]
         R --> M[Monitoring Agent]
     end
 
-    subgraph AI [Multi-Agent Layer (Google Gemini)]
+    subgraph AI ["Multi-Agent Layer (Google Gemini)"]
         C --> P_Agent[Prediction Agent]
         C --> NLP_Agent[Clinical NLP Agent]
         C --> K_Agent[Medical Knowledge Agent]
         C --> D_Agent[Document Parser Agent]
     end
     
-    subgraph Storage [Data Layer]
+    subgraph Storage ["Data Layer"]
         API --> DB_Layer[(SQLite / Postgres)]
     end
 ```
@@ -203,97 +203,21 @@ flowchart TD
 
 ## Project Structure
 
-```
-PraOjas-AI-Agent/
-├── client/                          # Frontend (React + Vite)
-│   ├── src/
-│   │   ├── components/              # Reusable React components
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── RiskGauge.tsx
-│   │   │   ├── AlertPanel.tsx
-│   │   │   ├── ExplainabilityPanel.tsx
-│   │   │   └── ...
-│   │   ├── pages/                   # Page components
-│   │   │   ├── Home.tsx
-│   │   │   ├── PatientProfile.tsx
-│   │   │   └── ...
-│   │   ├── App.tsx                  # Main app component
-│   │   ├── main.tsx                 # Entry point
-│   │   └── index.css                # Global styles
-│   └── public/                      # Static assets
-│
-├── server/                          # Backend (Express + Node.js)
-│   ├── routes.ts                    # API endpoint definitions
-│   ├── agents/                      # Multi-agent system
-│   │   ├── coordinator-agent.ts
-│   │   ├── prediction-agent.ts
-│   │   ├── clinical-nlp-agent.ts
-│   │   ├── medical-knowledge-agent.ts
-│   │   ├── document-understanding-agent.ts
-│   │   └── monitoring-agent.ts
-│   ├── middleware/
-│   │   ├── auth.ts                  # JWT authentication
-│   │   └── error-handler.ts
-│   ├── utils/
-│   │   ├── logger.ts                # Pino logging config
-│   │   ├── constants.ts
-│   │   └── validators.ts
-│   ├── core/
-│   │   └── config.ts                # Environment & config
-│   └── index.ts                     # Server entry point
-│
-├── backend/                         # Python FastAPI (Optional)
-│   ├── main.py
-│   ├── core/
-│   │   └── config.py
-│   ├── models/
-│   │   └── patient.py
-│   ├── routes/
-│   │   └── predictions.py
-│   ├── agents/
-│   │   └── ml_agent.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── README.md
-│
-├── docs/                            # Documentation
-│   ├── README.md                    # API Reference
-│   ├── architecture/
-│   │   ├── README.md
-│   │   └── diagrams/                # Sequence & flow diagrams
-│   └── deployment/
-│       └── README.md
-│
-├── architecture/                    # System design docs
-│   └── README.md
-│
-├── deployment/                      # Deployment configs
-│   ├── README.md
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   └── .env.example
-│
-├── tests/                           # Test files
-│   ├── unit/
-│   │   ├── agents.test.ts
-│   │   └── utils.test.ts
-│   └── integration/
-│       └── api.test.ts
-│
-├── .github/
-│   ├── workflows/                   # CI/CD workflows
-│   └── ISSUE_TEMPLATE/
-│
-├── vite.config.ts                  # Vite configuration
-├── vitest.config.ts                # Vitest configuration
-├── tsconfig.json                   # TypeScript config
-├── package.json                    # Dependencies & scripts
-├── docker-compose.yml              # Docker setup
-├── .env.example                    # Environment template
-├── .gitignore
-├── LICENSE
-└── README.md                       # This file
-```
+- **`frontend/`**: Frontend (React + Vite)
+  - `src/components/`: Reusable React components (Dashboard, RiskGauge, AlertPanel, etc.)
+  - `src/pages/`: Page components (Home, PatientProfile, etc.)
+  - `src/App.tsx`: Main app component
+  - `src/index.css`: Global styles
+- **`server/`**: Backend (Express + Node.js)
+  - `routes.ts`: API endpoint definitions
+  - `agents/`: Multi-agent system (coordinator, prediction, NLP, knowledge, etc.)
+  - `middleware/`: Auth and error handlers
+  - `utils/`: Logging and validators
+- **`backend/`**: Python FastAPI (Optional fallback)
+  - `main.py`, `models/`, `routes/`, `agents/`
+- **`docs/`**, **`architecture/`**, **`deployment/`**: Documentation and infrastructure configuration
+- **`tests/`**: Unit and integration tests
+- **Root Files**: `package.json`, `vite.config.ts`, `server.ts`
 
 ---
 
@@ -713,88 +637,8 @@ app.use(cors({
 
 ### Dashboard Overview
 *Patient vitals monitoring with real-time alerts and risk gauges*
-```
-┌─────────────────────────────────────────────────────────────┐
-│ PraOjas AI - ICU Dashboard                       [User ▼]   │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Patient: John Doe (ID: P-10001)  │ Status: CRITICAL ⚠️    │
-│                                                               │
-│  ┌─────────────────────────┐  ┌─────────────────────────┐   │
-│  │ Sepsis Risk             │  │ Mortality Risk          │   │
-│  │                         │  │                         │   │
-│  │      82%  🔴 HIGH      │  │      41%  🟡 MODERATE  │   │
-│  │   Confidence: 91%       │  │   Confidence: 87%       │   │
-│  └─────────────────────────┘  └─────────────────────────┘   │
-│                                                               │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │ Vitals                                              │     │
-│  │ Heart Rate: 105 bpm  ⬆️  │ Temperature: 38.9°C ⬆️  │     │
-│  │ BP: 95/60 mmHg ⬇️    │ RR: 22 ⬆️             │     │
-│  │ SpO2: 94% ↘️         │ Lactate: 3.1 ⬆️       │     │
-│  └─────────────────────────────────────────────────────┘     │
-│                                                               │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │ Top Risk Factors                                    │     │
-│  │ 1. Elevated Lactate (3.1) — 85% importance         │     │
-│  │ 2. Tachycardia (HR 105) — 65% importance           │     │
-│  │ 3. Fever (38.9°C) — 55% importance                 │     │
-│  └─────────────────────────────────────────────────────┘     │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
-```
 
-### Alert Panel
-*Clinical alerts with explainability*
-```
-┌─────────────────────────────────────────────────────────────┐
-│ ALERTS (3)                                                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│ 🔴 HIGH SEPSIS RISK DETECTED                                │
-│    Probability: 82% | Confidence: 91%                       │
-│    Explanation: Elevated lactate, tachycardia, fever        │
-│    Recommendation: Immediate sepsis protocol                │
-│                                                               │
-│ 🟡 HYPOTENSION ALERT                                         │
-│    BP: 95/60 mmHg | Threshold: <100/60                      │
-│    Recommendation: Fluid resuscitation, vasopressor support │
-│                                                               │
-│ 🟡 THROMBOCYTOPENIA                                          │
-│    Platelets: 110 K/µL | Normal: >150                       │
-│    Note: Concerning trend in sepsis context                 │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Document Upload
-*Parse clinical documents for structured data extraction*
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Document Understanding Agent                                │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│ Upload Clinical Document                                    │
-│ ┌─────────────────────────────────────────────────────┐     │
-│ │ Drop PDF/CSV/TXT here or click to browse     [📎]   │     │
-│ └─────────────────────────────────────────────────────┘     │
-│                                                               │
-│ Processing: patient_report.pdf... ⏳                         │
-│                                                               │
-│ Extracted Data:                                              │
-│ ┌─────────────────────────────────────────────────────┐     │
-│ │ Patient: Jane Smith               │ Age: 55         │     │
-│ │ Gender: Female                    │ Status: Stable  │     │
-│ │ Diagnoses: Pneumonia, COPD        │                 │     │
-│ │ Medications: Azithromycin, O2     │                 │     │
-│ │ Clinical Notes: Admitted 2026-06-30 with productive│     │
-│ │                 cough and dyspnea...                │     │
-│ └─────────────────────────────────────────────────────┘     │
-│                                                               │
-│ [Re-analyze with Prediction]  [Export CSV]                  │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
-```
+![Dashboard Light Theme](assets/dashboard_light_final.png)
 
 ### Live Demo
 

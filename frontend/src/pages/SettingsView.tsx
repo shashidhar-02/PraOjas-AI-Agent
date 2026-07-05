@@ -12,7 +12,7 @@ export default function SettingsView() {
     setIsLoggingOut(true);
     setTimeout(() => {
       localStorage.removeItem("praojas_auth");
-      navigate('/auth');
+      window.location.href = '/';
     }, 800);
   };
 

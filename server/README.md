@@ -84,17 +84,15 @@ Aggregates prediction results, explainability data, and NLP entities into a stru
 
 ## Agent Communication Flow
 
-```
-API Request (Express)
-        │
-        ▼
-CoordinatorAgent
-  ├── PredictionAgent        →  Gemini (structured output schema)
-  ├── MedicalKnowledgeAgent  →  Gemini (temperature: 0.2)
-  ├── DocumentUnderstanding  →  Gemini (JSON extraction)
-  ├── ValidationAgent        →  Rule-based + Gemini
-  ├── ClinicalNLPAgent       →  Gemini (entity extraction)
-  └── ClinicalReportAgent    →  Gemini (report synthesis)
+```mermaid
+flowchart TD
+    API["API Request (Express)"] --> Coord["CoordinatorAgent"]
+    Coord --> Pred["PredictionAgent<br/>Gemini (structured output schema)"]
+    Coord --> Know["MedicalKnowledgeAgent<br/>Gemini (temperature: 0.2)"]
+    Coord --> Doc["DocumentUnderstanding<br/>Gemini (JSON extraction)"]
+    Coord --> Val["ValidationAgent<br/>Rule-based + Gemini"]
+    Coord --> NLP["ClinicalNLPAgent<br/>Gemini (entity extraction)"]
+    Coord --> Rep["ClinicalReportAgent<br/>Gemini (report synthesis)"]
 ```
 
 ---
