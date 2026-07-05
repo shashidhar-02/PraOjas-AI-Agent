@@ -30,11 +30,14 @@ import AuthPage from "./pages/AuthPage";
 import ManualEntryModal from "./components/ManualEntryModal";
 import AddPatientModal from "./components/AddPatientModal";
 import LandingPage from "./pages/LandingPage";
-import RosterView from "./pages/RosterView";
+import RosterView from './pages/RosterView';
+import DashboardView from './pages/DashboardView';
+import SettingsView from './pages/SettingsView';
+import AlertsView from './pages/AlertsView';
 import PatientDashboard from "./pages/PatientDashboard";
 import AIAnalysisView from "./pages/AIAnalysisView";
-import AlertsView from "./pages/AlertsView";
 import Sidebar from "./components/Sidebar";
+import GlobalAlerts from "./components/GlobalAlerts";
 
 // ─────────────────────────────────────────────────────────
 // TYPES
@@ -1094,6 +1097,7 @@ function AppContent() {
         >
           <Plus className="w-6 h-6" />
         </button>
+        <GlobalAlerts />
       </div>
     );
   };
@@ -1143,13 +1147,12 @@ function AppContent() {
       } />
       
       {/* Protected Routes */}
-      <Route path="/dashboard" element={<AppLayout><RosterView patients={patients} onSelectPatient={(p) => window.location.href = `/patient/${p.id}`} /></AppLayout>} />
+      <Route path="/dashboard" element={<AppLayout><DashboardView /></AppLayout>} />
       <Route path="/patients" element={<AppLayout><RosterView patients={patients} onSelectPatient={(p) => window.location.href = `/patient/${p.id}`} /></AppLayout>} />
       <Route path="/patient/:id" element={<AppLayout><PatientDashboardWrapper /></AppLayout>} />
       <Route path="/patient/:id/analysis" element={<AppLayout><AnalysisWrapper /></AppLayout>} />
       <Route path="/alerts" element={<AppLayout><AlertsView /></AppLayout>} />
-      <Route path="/reports" element={<AppLayout><div className="p-8 text-center text-muted-foreground">Reports View (Coming Soon)</div></AppLayout>} />
-      <Route path="/settings" element={<AppLayout><div className="p-8 text-center text-muted-foreground">Settings View (Coming Soon)</div></AppLayout>} />
+      <Route path="/settings" element={<AppLayout><SettingsView /></AppLayout>} />
       
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

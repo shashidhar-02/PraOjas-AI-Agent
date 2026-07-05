@@ -70,81 +70,58 @@ PraOjas AI automates risk assessment, provides explainable predictions, and gene
 
 ### System Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PraOjas AI System                             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │         Frontend (Vite + React + Tailwind)              │   │
-│  │  - Real-time Dashboard                                  │   │
-│  │  - Risk Gauges, Alerts, Handoff Summaries              │   │
-│  │  - Explainability Panels                                │   │
-│  └────────────────┬─────────────────────────────────────────┘   │
-│                   │ REST API Calls (JSON)                       │
-│  ┌────────────────▼─────────────────────────────────────────┐   │
-│  │    Backend (Express.js + Node.js + TypeScript)          │   │
-│  │  - Secure Routes (/api/predict, /api/explain, etc.)    │   │
-│  │  - Rate Limiting, Helmet Security, Auth Middleware      │   │
-│  │  - Structured Logging (Pino JSON)                       │   │
-│  └────────────────┬─────────────────────────────────────────┘   │
-│                   │ Agent Orchestration                         │
-│  ┌────────────────▼─────────────────────────────────────────┐   │
-│  │        Multi-Agent Layer (Gemini-Powered)               │   │
-│  │  ┌─────────────────────────────────────────────────┐    │   │
-│  │  │ CoordinatorAgent (Main Orchestrator)            │    │   │
-│  │  │  ├─ PredictionAgent (Sepsis/Mortality)         │    │   │
-│  │  │  ├─ ClinicalNLPAgent (Text Understanding)      │    │   │
-│  │  │  ├─ MedicalKnowledgeAgent (Guidelines)         │    │   │
-│  │  │  └─ DocumentUnderstandingAgent (PDF/CSV Parse) │    │   │
-│  │  └─────────────────────────────────────────────────┘    │   │
-│  │  ┌─────────────────────────────────────────────────┐    │   │
-│  │  │ MonitoringAgent (Autonomous Alerts)             │    │   │
-│  │  └─────────────────────────────────────────────────┘    │   │
-│  └────────────────┬─────────────────────────────────────────┘   │
-│                   │ API Calls (Gemini)                          │
-│  ┌────────────────▼─────────────────────────────────────────┐   │
-│  │      Google Gemini 1.5 Pro (LLM Engine)                 │   │
-│  │  - Predictive Reasoning                                  │   │
-│  │  - Clinical Entity Extraction                            │   │
-│  │  - Explainability Generation                             │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │        PostgreSQL Database (Docker)                      │   │
-│  │  - Patient History                                       │   │
-│  │  - Prediction Logs                                       │   │
-│  │  - Clinical Events                                       │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Frontend [Frontend (React + Tailwind)]
+        DB[Dashboard] --> API
+        P[Patients View] --> API
+        A[Real-time Alerts] --> API
+        S[Settings] --> API
+    end
+
+    subgraph Backend [Backend (Node.js + Express)]
+        API[Secure REST API] --> R[Router]
+        R --> C[Coordinator Agent]
+        R --> M[Monitoring Agent]
+    end
+
+    subgraph AI [Multi-Agent Layer (Google Gemini)]
+        C --> P_Agent[Prediction Agent]
+        C --> NLP_Agent[Clinical NLP Agent]
+        C --> K_Agent[Medical Knowledge Agent]
+        C --> D_Agent[Document Parser Agent]
+    end
+    
+    subgraph Storage [Data Layer]
+        API --> DB_Layer[(SQLite / Postgres)]
+    end
 ```
 
 ### Data Flow
 
-```
-Patient Data (Vitals, Labs, Notes)
-           │
-           ▼
-API Request (/api/predict, /api/parse-document)
-           │
-           ▼
-CoordinatorAgent (Route to appropriate sub-agent)
-           │
-           ├─► PredictionAgent ──► Gemini API ──► Sepsis/Mortality Probability
-           │
-           ├─► DocumentUnderstandingAgent ──► Gemini API ──► Structured Data
-           │
-           └─► ClinicalNLPAgent ──► MedicalKnowledgeAgent ──► Recommendations
-                       │
-                       ▼
-           Generate Explanations & Reports
-                       │
-                       ▼
-           Return JSON Response to Frontend
-                       │
-                       ▼
-           Dashboard Visualization
+```mermaid
+sequenceDiagram
+    participant User as Frontend (Doctor)
+    participant API as Backend API
+    participant Coord as Coordinator Agent
+    participant Gemini as Google Gemini 1.5 Pro
+    
+    User->>API: Submits Patient Vitals/Notes
+    API->>Coord: Route Request
+    
+    par Analysis
+        Coord->>Gemini: PredictionAgent (Sepsis/Mortality Risk)
+        Gemini-->>Coord: Risk Probabilities
+    and Parsing
+        Coord->>Gemini: DocumentUnderstandingAgent
+        Gemini-->>Coord: Structured Data extraction
+    and Guidelines
+        Coord->>Gemini: ClinicalNLPAgent & MedicalKnowledgeAgent
+        Gemini-->>Coord: Medical Recommendations
+    end
+    
+    Coord->>API: Generate Explanations & Combine Results
+    API->>User: JSON Response / Dashboard Visualization
 ```
 
 ---
@@ -153,55 +130,21 @@ CoordinatorAgent (Route to appropriate sub-agent)
 
 ### Agent Orchestration
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  USER REQUEST (Patient Data, Clinical Context)             │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-        ┌────────▼─────────┐
-        │ COORDINATOR AGENT │
-        │ (Main Router)     │
-        └────────┬─────────┘
-                 │
-         ┌───────┴────────────────────────┐
-         │                                │
-    ┌────▼────┐          ┌────────────────▼──┐
-    │PREDICTION│          │ DOCUMENT PARSING  │
-    │ AGENT   │          │ AGENT             │
-    └────┬────┘          └────────────┬──────┘
-         │                            │
-    ┌────▼──────┐          ┌──────────▼──┐
-    │ Gemini    │          │ PDF/CSV/Text│
-    │ -Sepsis   │          │ Extraction  │
-    │ -Mortality│          └──────┬───────┘
-    └────┬──────┘                 │
-         │                   ┌────▼──────────┐
-         │                   │Clinical NLP   │
-         │                   │Entity Extract │
-         │                   └────┬──────────┘
-         │                        │
-         │             ┌──────────▼───┐
-         │             │Medical        │
-         │             │Knowledge Agnt │
-         │             └────┬──────────┘
-         │                  │
-         │            ┌─────▼────┐
-         │            │Clinical  │
-         │            │Report    │
-         │            │Agent     │
-         │            └─────┬────┘
-         │                  │
-         └──────────┬───────┘
-                    │
-        ┌───────────▼────────────┐
-        │ RESPONSE FORMATTING    │
-        │ (JSON Response)        │
-        └───────────┬────────────┘
-                    │
-        ┌───────────▼────────────┐
-        │ FRONTEND DASHBOARD     │
-        │ (Visualization)        │
-        └────────────────────────┘
+```mermaid
+flowchart TD
+    User([USER REQUEST <br/> Patient Data, Clinical Context]) --> Coord{COORDINATOR AGENT <br/> Main Router}
+    Coord --> Pred[PREDICTION AGENT]
+    Coord --> Doc[DOCUMENT PARSING AGENT <br/> PDF/CSV/Text]
+    
+    Pred --> GemS[Gemini <br/> Sepsis / Mortality]
+    Doc --> NLP[Clinical NLP <br/> Entity Extract]
+    NLP --> Know[Medical Knowledge Agent]
+    Know --> Rep[Clinical Report Agent]
+    
+    GemS --> Formatter[RESPONSE FORMATTING <br/> JSON Response]
+    Rep --> Formatter
+    
+    Formatter --> Dash([FRONTEND DASHBOARD <br/> Visualization])
 ```
 
 ### Agent Responsibilities

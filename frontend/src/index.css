@@ -320,11 +320,4 @@ body {
   box-shadow: 0 4px 24px -4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
-/* Override any light mode attempt from Tailwind */
-@media (prefers-color-scheme: light) {
-  :root {
-    /* Force dark colors even if system is in light mode */
-    background-color: #030712;
-    color: #e2e8f0;
-  }
-}
+/* Override any light mode attempt from Tailwind - removed to fix light theme bug */

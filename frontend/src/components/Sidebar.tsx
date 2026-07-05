@@ -16,7 +16,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 flex-shrink-0 flex flex-col h-screen bg-[#0B1120] border-r border-[#1e293b]">
+    <div className="w-64 flex-shrink-0 flex flex-col h-screen bg-slate-50 dark:bg-[#0B1120] border-r border-slate-200 dark:border-[#1e293b] transition-colors">
       {/* Logo Area */}
       <div className="px-6 py-8 flex items-center gap-3">
         {/* Stylized P Logo matching reference */}
@@ -37,7 +37,7 @@ export default function Sidebar() {
             </defs>
           </svg>
         </div>
-        <span className="font-semibold text-lg text-white tracking-wide">PraOjas AI</span>
+        <span className="font-semibold text-lg text-slate-900 dark:text-white tracking-wide">PraOjas AI</span>
       </div>
 
       {/* Navigation */}
@@ -50,15 +50,15 @@ export default function Sidebar() {
               to={item.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative ${
                 isActive 
-                  ? 'bg-slate-800/50 text-[#06b6d4]' 
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                  ? 'bg-indigo-50 dark:bg-slate-800/50 text-indigo-600 dark:text-[#06b6d4]' 
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/30'
               }`}
             >
               {/* Cyan active indicator on the left edge */}
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#06b6d4] rounded-r-full" />
               )}
-              <item.icon className={`w-5 h-5 ${isActive ? 'text-[#06b6d4]' : 'text-slate-400'}`} />
+              <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600 dark:text-[#06b6d4]' : 'text-slate-500 dark:text-slate-400'}`} />
               <span className="font-medium text-sm">{item.label}</span>
             </NavLink>
           );
