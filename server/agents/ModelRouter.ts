@@ -15,7 +15,6 @@ import { GoogleGenAI } from '@google/genai';
 
 const MODEL_CHAIN = [
   'gemini-2.5-pro',
-  'gemini-1.5-pro',
   'gemini-2.0-flash',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
@@ -112,12 +111,12 @@ export class ModelRouter {
       } catch (error: any) {
         const status = error?.status || error?.code;
         
-        if (status === 429 || (error?.message && error.message.includes('RESOURCE_EXHAUSTED'))) {
-          // Rate limited — put on 60s cooldown
+        if (status === 429 || status === 503 || (error?.message && (error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('UNAVAILABLE')))) {
+          // Rate limited or overloaded — put on 60s cooldown
           const cooldownMs = this.extractRetryDelay(error) || 60_000;
           this.rateLimitedModels.set(model, Date.now() + cooldownMs);
-          console.warn(`[ModelRouter] ${model} rate-limited. Cooldown ${cooldownMs / 1000}s. Trying next model...`);
-          errors.push(`${model}: 429`);
+          console.warn(`[ModelRouter] ${model} overloaded/rate-limited (status ${status}). Cooldown ${cooldownMs / 1000}s. Trying next model...`);
+          errors.push(`${model}: ${status}`);
           continue;
         }
 
