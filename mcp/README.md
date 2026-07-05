@@ -26,8 +26,8 @@ The PraOjas MCP server is fully implemented using the `@modelcontextprotocol/sdk
 graph TD
     Client[Agent / Client] -->|stdio| MCPServer[PraOjas-MCP Server]
     MCPServer -->|get_patient_observations| MockDB[(Simulated EHR Database)]
-    MCPServer -->|predict_sepsis_risk| PredictionAgent[PredictionAgent (Gemini)]
-    MCPServer -->|generate_explanation| MedicalKnowledgeAgent[MedicalKnowledgeAgent (Gemini)]
+    MCPServer -->|predict_sepsis_risk| PredictionAgent["PredictionAgent (Gemini)"]
+    MCPServer -->|generate_explanation| MedicalKnowledgeAgent["MedicalKnowledgeAgent (Gemini)"]
 ```
 
 ### Running the Server

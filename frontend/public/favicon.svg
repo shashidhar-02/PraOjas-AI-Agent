@@ -1,0 +1,20 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="100" height="100" rx="24" fill="url(#bg)" />
+  
+  <!-- Sleek Heart -->
+  <path d="M50 82 L26 58 C12 44 16 24 30 18 C39 14 47 20 50 28 C53 20 61 14 70 18 C84 24 88 44 74 58 Z" fill="url(#heartGrad)" />
+  
+  <!-- "PO" Text -->
+  <text x="50" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="26" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" letter-spacing="-1">PO</text>
+</svg>

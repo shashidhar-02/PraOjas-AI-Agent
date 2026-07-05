@@ -5,6 +5,8 @@ import { Patient } from "../App";
 import { StatusPill, getInitials, extractDiagnoses, extractSymptoms, PredictionPanel, ExplainabilityPanel } from "../App";
 
 export default function AIAnalysisView({ patient, onBack }: { patient: Patient; onBack: () => void }) {
+  const [sharedPrediction, setSharedPrediction] = useState<any>(null);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -43,8 +45,8 @@ export default function AIAnalysisView({ patient, onBack }: { patient: Patient; 
         </div>
 
         <div className="grid grid-cols-2 gap-6 h-[calc(100vh-220px)] min-h-[600px]">
-          <PredictionPanel patient={patient} />
-          <ExplainabilityPanel patient={patient} />
+          <PredictionPanel patient={patient} sharedPrediction={sharedPrediction} setSharedPrediction={setSharedPrediction} />
+          <ExplainabilityPanel patient={patient} sharedPrediction={sharedPrediction} setSharedPrediction={setSharedPrediction} />
         </div>
       </div>
     </div>

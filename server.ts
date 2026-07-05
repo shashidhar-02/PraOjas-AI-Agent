@@ -60,13 +60,18 @@ if (!isDbConfigured()) {
 const coordinatorAgent = new CoordinatorAgent(process.env.GEMINI_API_KEY || '');
 const monitoringAgent = new MonitoringAgent(process.env.GEMINI_API_KEY || '');
 
-// ── SSE Alert Subscribers ──────────────────────────────────────────────────
+// ── SSE Alert Subscribers & History ──────────────────────────────────────────
 // Each connected browser client is stored here for SSE push
 const sseClients: Set<express.Response> = new Set();
+const alertHistory: any[] = [];
 
 // When monitoring agent fires an alert, push it to all connected SSE clients
 monitoringAgent.subscribe((alert: PatientAlert) => {
-  const data = `data: ${JSON.stringify(alert)}\n\n`;
+  const payload = { type: 'alert', payload: alert };
+  alertHistory.unshift(payload);
+  if (alertHistory.length > 50) alertHistory.pop();
+  
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
   sseClients.forEach(client => {
     try {
       client.write(data);
@@ -80,7 +85,7 @@ monitoringAgent.subscribe((alert: PatientAlert) => {
 monitoringAgent.start();
 
 // ── API Routes ─────────────────────────────────────────────────────────────
-const apiRouter = createRouter(coordinatorAgent, monitoringAgent, sseClients);
+const apiRouter = createRouter(coordinatorAgent, monitoringAgent, sseClients, alertHistory);
 app.use('/api', apiRouter);
 
 // ── Server Startup ─────────────────────────────────────────────────────────

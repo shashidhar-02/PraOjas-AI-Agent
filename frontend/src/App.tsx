@@ -340,7 +340,9 @@ interface ThemeCtx {
 const ThemeContext = createContext<ThemeCtx>({ theme: "dark", setTheme: () => {}, effectiveTheme: "dark" });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>(() => {
+    return (localStorage.getItem("praojas_theme") as Theme) || "system";
+  });
 
   const resolve = useCallback((t: Theme): "light" | "dark" => {
     if (t === "system") return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -350,6 +352,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [effectiveTheme, setEffectiveTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
+    localStorage.setItem("praojas_theme", theme);
     const eff = resolve(theme);
     setEffectiveTheme(eff);
     if (eff === "dark") document.documentElement.classList.add("dark");
@@ -585,19 +588,21 @@ export function PatientList({
 // PREDICTION PANEL
 // ─────────────────────────────────────────────────────────
 
-export function PredictionPanel({ patient }: { patient: Patient }) {
+export function PredictionPanel({ patient, sharedPrediction, setSharedPrediction }: { patient: Patient, sharedPrediction?: any, setSharedPrediction?: (p: any) => void }) {
   const { effectiveTheme } = useTheme();
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [prediction, setPrediction] = useState<any>(null);
+  const [localPrediction, setLocalPrediction] = useState<any>(null);
+  
+  const activePrediction = sharedPrediction || localPrediction;
   
   const gaugeBg = effectiveTheme === "dark" ? "#1e293b" : "#e2e8f0";
 
   // Use the live prediction if available, otherwise fallback to mock values for demo
-  const sepsisRiskVal = prediction ? (prediction.sepsisProbability * 100) : patient.sepsisRisk;
-  const mortalityRiskVal = prediction ? (prediction.mortalityProbability * 100) : patient.mortalityRisk;
-  const confidenceVal = prediction ? (prediction.confidenceScore * 100).toFixed(1) : "92.4";
-  const modelNameVal = prediction ? prediction.modelMetadata.name : "PraOjas Clinical Engine · v3.1";
+  const sepsisRiskVal = activePrediction ? (activePrediction.sepsisProbability * 100) : patient.sepsisRisk;
+  const mortalityRiskVal = activePrediction ? (activePrediction.mortalityProbability * 100) : patient.mortalityRisk;
+  const confidenceVal = activePrediction ? (activePrediction.confidenceScore * 100).toFixed(1) : "92.4";
+  const modelNameVal = activePrediction ? activePrediction.modelMetadata.name : "PraOjas Clinical Engine · v3.1";
 
   const sepsisColor = sepsisRiskVal >= 50 ? "#f43f5e" : sepsisRiskVal >= 30 ? "#f59e0b" : "#10b981";
   const mortalityColor = mortalityRiskVal >= 30 ? "#f59e0b" : "#6366f1";
@@ -624,7 +629,8 @@ export function PredictionPanel({ patient }: { patient: Patient }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Prediction failed');
       
-      setPrediction(data);
+      setLocalPrediction(data);
+      if (setSharedPrediction) setSharedPrediction(data);
       setState("done");
     } catch (err: any) {
       console.error(err);
@@ -769,7 +775,7 @@ export function PredictionPanel({ patient }: { patient: Patient }) {
 // EXPLAINABILITY PANEL
 // ─────────────────────────────────────────────────────────
 
-export function ExplainabilityPanel({ patient }: { patient: Patient }) {
+export function ExplainabilityPanel({ patient, sharedPrediction, setSharedPrediction }: { patient: Patient, sharedPrediction?: any, setSharedPrediction?: (p: any) => void }) {
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [traceStep, setTraceStep] = useState(0);
   const [reportData, setReportData] = useState<any>(null);
@@ -788,18 +794,22 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
     }, 900);
 
     try {
-      const predRes = await fetch('/api/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patient })
-      });
-      const prediction = await predRes.json();
-      if (!predRes.ok) throw new Error(prediction.error);
+      let predictionToUse = sharedPrediction;
+      if (!predictionToUse) {
+        const predRes = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patient })
+        });
+        predictionToUse = await predRes.json();
+        if (!predRes.ok) throw new Error(predictionToUse.error);
+        if (setSharedPrediction) setSharedPrediction(predictionToUse);
+      }
       
       const expRes = await fetch('/api/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patient, prediction })
+        body: JSON.stringify({ patient, prediction: predictionToUse })
       });
       const data = await expRes.json();
       if (!expRes.ok) throw new Error(data.error);
@@ -857,14 +867,36 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
             <p className="text-xs text-muted-foreground">Evidence-based recommendations</p>
           </div>
         </div>
-        <button
-          onClick={handleGenerateReport}
-          disabled={state === "loading"}
-          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors"
-        >
-          <FileText className="w-3.5 h-3.5" />
-          Generate Report
-        </button>
+        <div className="flex items-center gap-2">
+          {state === "done" && (
+            <button
+              onClick={async () => {
+                const el = document.getElementById("clinical-report-content");
+                if (!el) return;
+                try {
+                  const html2canvas = (await import("html2canvas")).default;
+                  const { jsPDF } = await import("jspdf");
+                  const canvas = await html2canvas(el, { scale: 2 });
+                  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+                  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
+                  pdf.save(`Clinical_Report_${patient.id}.pdf`);
+                } catch (e) { console.error(e); }
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-lg transition-colors border border-border"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download PDF
+            </button>
+          )}
+          <button
+            onClick={handleGenerateReport}
+            disabled={state === "loading"}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            {state === "done" ? "Regenerate" : "Generate Report"}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -918,7 +950,7 @@ export function ExplainabilityPanel({ patient }: { patient: Patient }) {
         )}
 
         {state === "done" && (
-          <div className="space-y-5">
+          <div id="clinical-report-content" className="space-y-5 bg-card text-foreground">
             {/* Executive Summary */}
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Executive Summary</h3>

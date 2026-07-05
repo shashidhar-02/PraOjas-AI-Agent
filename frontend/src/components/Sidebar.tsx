@@ -21,25 +21,20 @@ export default function Sidebar() {
       <div className="px-6 py-8 flex items-center gap-3">
         {/* Premium Medical AI Logo */}
         <div className="relative flex items-center justify-center w-8 h-8 flex-shrink-0">
-          <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Hexagon Base */}
-            <path d="M20 3 L36 12 L36 28 L20 37 L4 28 L4 12 Z" fill="url(#hex_grad)" fillOpacity="0.15" stroke="url(#hex_grad)" strokeWidth="1.5" />
-            
-            {/* Central Pulse / AI Cross */}
-            <path d="M11 20 L15 20 L19 12 L24 28 L28 20 L32 20" stroke="url(#pulse_grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="11" cy="20" r="1.5" fill="#06b6d4" />
-            <circle cx="32" cy="20" r="1.5" fill="#6366f1" />
-
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="hex_grad" x1="4" y1="3" x2="36" y2="37" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#06b6d4"/>
-                <stop offset="1" stopColor="#6366f1"/>
+              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0f172a" />
+                <stop offset="100%" stopColor="#1e293b" />
               </linearGradient>
-              <linearGradient id="pulse_grad" x1="12" y1="20" x2="32" y2="20" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#06b6d4"/>
-                <stop offset="1" stopColor="#818cf8"/>
+              <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#06b6d4" />
+                <stop offset="100%" stopColor="#818cf8" />
               </linearGradient>
             </defs>
+            <rect width="100" height="100" rx="24" fill="url(#bg)" />
+            <path d="M50 82 L26 58 C12 44 16 24 30 18 C39 14 47 20 50 28 C53 20 61 14 70 18 C84 24 88 44 74 58 Z" fill="url(#heartGrad)" />
+            <text x="50" y="52" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="26" fill="#ffffff" textAnchor="middle" dominantBaseline="middle" letterSpacing="-1">PO</text>
           </svg>
         </div>
         <span className="font-semibold text-lg text-slate-900 dark:text-white tracking-wide">PraOjas AI</span>

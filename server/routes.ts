@@ -8,7 +8,8 @@ import { requireAuth } from './middleware/auth';
 export function createRouter(
   coordinatorAgent: CoordinatorAgent, 
   monitoringAgent: MonitoringAgent,
-  sseClients: Set<any>
+  sseClients: Set<any>,
+  alertHistory: any[] = []
 ) {
   const router = Router();
   const upload = multer({ storage: multer.memoryStorage() });
@@ -27,6 +28,11 @@ export function createRouter(
     const heartbeat = setInterval(() => {
       res.write(': heartbeat\n\n');
     }, 30_000);
+
+    // Push existing history immediately
+    [...alertHistory].reverse().forEach(alert => {
+      res.write(`data: ${JSON.stringify(alert)}\n\n`);
+    });
 
     sseClients.add(res);
 
