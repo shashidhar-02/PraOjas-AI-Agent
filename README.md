@@ -638,13 +638,17 @@ app.use(cors({
 
 ### 1. Landing Page — "Predicting Critical Trajectories Before They Happen"
 *Hero section showcasing the mission of PraOjas AI with ICU monitoring visuals*
-
-<div style="text-align: center; margin: 20px 0;">
-  <a href="https://drive.google.com/file/d/1mU1Ao-JxNlLuT_OwqN2U8PBuFVU52pzF/view?usp=sharing" target="_blank" rel="noopener noreferrer">
-    <img src="https://lh3.googleusercontent.com/d/1mU1Ao-JxNlLuT_OwqN2U8PBuFVU52pzF=w400" alt="PraOjas AI Landing Page" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;">
+<p align="center">
+  <a href="https://drive.google.com/file/d/1mU1Ao-JxNlLuT_OwqN2U8PBuFVU52pzF/view?usp=sharing">
+    <img src="https://drive.google.com/uc?export=view&id=1mU1Ao-JxNlLuT_OwqN2U8PBuFVU52pzF"
+         alt="PraOjas AI Landing Page"
+         width="900">
   </a>
-  <p><strong>Click to view full screenshot</strong></p>
-</div>
+</p>
+
+<p align="center">
+  <strong>Click the image to view the full screenshot.</strong>
+</p>
 
 ### 2. ICU Overview Dashboard
 *High-level analytics with risk trends, patient status distribution, and key metrics (6 active ICU beds, 2 critical patients, 39% average sepsis risk)*
@@ -663,13 +667,17 @@ app.use(cors({
 ### 3. ICU Roster Overview
 *Detailed patient registry with real-time vitals, sepsis risk scores, and patient status indicators (Critical/Warning/Stable)*
 
-<div style="text-align: center; margin: 20px 0;">
-  <a href="https://drive.google.com/file/d/1mnTGstUANcbUH3G-vp7DPlYaPYz5_-RP/view?usp=sharing" target="_blank" rel="noopener noreferrer">
-    <img src="https://lh3.googleusercontent.com/d/1mnTGstUANcbUH3G-vp7DPlYaPYz5_-RP=w400" alt="ICU Roster Overview" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; height: auto;">
+<p align="center">
+  <a href="https://drive.google.com/file/d/1mnTGstUANcbUH3G-vp7DPlYaPYz5_-RP/view?usp=sharing">
+    <img src="https://drive.google.com/uc?export=view&id=1mnTGstUANcbUH3G-vp7DPlYaPYz5_-RP"
+         alt="ICU Roster Overview"
+         width="900">
   </a>
-  <p><strong>Click to view full screenshot</strong></p>
-</div>
+</p>
 
+<p align="center">
+  <strong>Click the image to view the full screenshot.</strong>
+</p>
 
 ### 4. Patient Profile
 *Comprehensive patient view with real-time vitals, risk scores, and clinical history*
