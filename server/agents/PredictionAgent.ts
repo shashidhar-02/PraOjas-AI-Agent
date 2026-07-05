@@ -41,54 +41,36 @@ export class PredictionAgent {
       Clinical Notes: ${patientData.clinicalNotes || 'None'}
     `;
 
-    const predictOutcomesTool: Tool = {
-      functionDeclarations: [
-        {
-          name: 'predict_outcomes',
-          description: 'Records the predicted probabilities for sepsis and mortality.',
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              sepsisProbability: { type: Type.NUMBER, description: "Probability of sepsis (0.0 to 1.0)" },
-              mortalityProbability: { type: Type.NUMBER, description: "Probability of mortality (0.0 to 1.0)" },
-              confidenceScore: { type: Type.NUMBER, description: "Confidence in this prediction (0.0 to 1.0)" }
-            },
-            required: ["sepsisProbability", "mortalityProbability", "confidenceScore"]
-          }
-        }
-      ]
-    };
+      const schema = {
+        type: Type.OBJECT,
+        properties: {
+          sepsisProbability: { type: Type.NUMBER, description: "Probability of sepsis (0.0 to 1.0)" },
+          mortalityProbability: { type: Type.NUMBER, description: "Probability of mortality (0.0 to 1.0)" },
+          confidenceScore: { type: Type.NUMBER, description: "Confidence in this prediction (0.0 to 1.0)" }
+        },
+        required: ["sepsisProbability", "mortalityProbability", "confidenceScore"]
+      };
 
     try {
       const response = await this.router.generateContent({
         contents: prompt,
         config: {
           temperature: 0.1,
-          tools: [predictOutcomesTool],
-          toolConfig: {
-            functionCallingConfig: {
-              mode: 'ANY'
-            }
-          }
+          responseMimeType: "application/json",
+          responseSchema: schema
         }
       });
       
-      // Extract function call arguments
       let parsed = null;
-      if (response.functionCalls && response.functionCalls.length > 0) {
-        parsed = response.functionCalls[0].args;
-      } else if (response.text) {
-        // Fallback if model ignored tool and returned text
-        const cleanedText = response.text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```json/g, '').replace(/```/g, '').trim();
-        try {
-          parsed = JSON.parse(cleanedText);
-        } catch (e) {
-          throw new Error(`Failed to parse model response as JSON. Raw text: ${response.text}`);
-        }
+      try {
+        const text = response.text || "{}";
+        parsed = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Failed to parse model response as JSON. Raw text: ${response.text}`);
       }
 
       if (!parsed || parsed.sepsisProbability === undefined) {
-        throw new Error('Invalid or missing function call arguments');
+        throw new Error('Invalid or missing response schema arguments');
       }
 
       // Coerce to numbers to prevent NaN if model returns strings

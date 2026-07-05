@@ -23,18 +23,28 @@ export default function Sidebar() {
         <div className="relative flex items-center justify-center w-8 h-8 flex-shrink-0">
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0f172a" />
-                <stop offset="100%" stopColor="#1e293b" />
+              <linearGradient id="gradP" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#4f46e5" />
+                <stop offset="100%" stopColor="#2563eb" />
               </linearGradient>
-              <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#06b6d4" />
-                <stop offset="100%" stopColor="#818cf8" />
+              <linearGradient id="gradO" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#22d3ee" />
+                <stop offset="100%" stopColor="#6366f1" />
               </linearGradient>
+              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="-2" dy="4" stdDeviation="3" floodOpacity="0.35" floodColor="#020617"/>
+              </filter>
             </defs>
-            <rect width="100" height="100" rx="24" fill="url(#bg)" />
-            <path d="M50 82 L26 58 C12 44 16 24 30 18 C39 14 47 20 50 28 C53 20 61 14 70 18 C84 24 88 44 74 58 Z" fill="url(#heartGrad)" />
-            <text x="50" y="52" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="26" fill="#ffffff" textAnchor="middle" dominantBaseline="middle" letterSpacing="-1">PO</text>
+            
+            {/* P Stem */}
+            <rect x="25" y="15" width="20" height="70" rx="10" fill="url(#gradP)" />
+
+            {/* P Loop (overlapping ribbon) */}
+            <path d="M 45 15 
+                     A 30 30 0 1 1 45 75 
+                     L 45 57 
+                     A 12 12 0 1 0 45 33 
+                     Z" fill="url(#gradO)" filter="url(#shadow)" />
           </svg>
         </div>
         <span className="font-semibold text-lg text-slate-900 dark:text-white tracking-wide">PraOjas AI</span>

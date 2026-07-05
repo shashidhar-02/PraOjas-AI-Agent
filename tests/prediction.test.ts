@@ -37,13 +37,7 @@ describe('PredictionAgent', () => {
       ModelRouter: vi.fn().mockImplementation(function () {
         return {
           generateContent: vi.fn().mockResolvedValue({
-            functionCalls: [
-              {
-                name: 'predict_outcomes',
-                args: { sepsisProbability: 0.82, mortalityProbability: 0.41, confidenceScore: 0.91 },
-              },
-            ],
-            text: null,
+            text: JSON.stringify({ sepsisProbability: 0.82, mortalityProbability: 0.41, confidenceScore: 0.91 }),
           }),
         };
       }),
@@ -68,14 +62,7 @@ describe('PredictionAgent', () => {
           // Invoke Gemini model to estimate patient sepsis risk.
           // The result is forwarded to the coordinator agent for aggregation.
           generateContent: vi.fn().mockResolvedValue({
-            functionCalls: [
-              {
-                name: 'predict_outcomes',
-                // Model returns out-of-range values — agent must clamp them
-                args: { sepsisProbability: 1.5, mortalityProbability: -0.2, confidenceScore: 0.9 },
-              },
-            ],
-            text: null,
+            text: JSON.stringify({ sepsisProbability: 1.5, mortalityProbability: -0.2, confidenceScore: 0.9 }),
           }),
         };
       }),
@@ -135,13 +122,7 @@ describe('PredictionAgent', () => {
       ModelRouter: vi.fn().mockImplementation(function () {
         return {
           generateContent: vi.fn().mockResolvedValue({
-            functionCalls: [
-              {
-                name: 'predict_outcomes',
-                args: { sepsisProbability: 0.78, mortalityProbability: 0.38, confidenceScore: 0.89 },
-              },
-            ],
-            text: null,
+            text: JSON.stringify({ sepsisProbability: 0.78, mortalityProbability: 0.38, confidenceScore: 0.89 }),
           }),
         };
       }),

@@ -618,7 +618,7 @@ export function PredictionPanel({ patient, sharedPrediction, setSharedPrediction
 
   async function handleRunInference() {
     setState("loading");
-    setPrediction(null);
+    setLocalPrediction(null);
     setErrorMessage("");
     try {
       const res = await fetch('/api/predict', {
@@ -1205,7 +1205,7 @@ function AppContent() {
       <PatientDashboard 
         patient={patient} 
         onAnalysis={() => navigate(`/patient/${patient.id}/analysis`)}
-        onBack={() => navigate('/dashboard')}
+        onBack={() => navigate('/patients')}
         onUpdatePatient={handleUpdatePatient}
       />
     );
@@ -1221,16 +1221,34 @@ function AppContent() {
     return <AIAnalysisView patient={patient} onBack={() => navigate(-1)} />;
   };
 
+  // Wrapper for Roster View
+  const RosterWrapper = () => {
+    const navigate = useNavigate();
+    return <RosterView patients={patients} onSelectPatient={(p) => navigate(`/patient/${p.id}`)} />;
+  };
+
+  // Wrapper for Landing Page
+  const LandingWrapper = () => {
+    const navigate = useNavigate();
+    return <LandingPage onEnter={() => isAuthenticated ? navigate('/dashboard') : navigate('/auth')} />;
+  };
+
+  // Wrapper for Auth Page
+  const AuthWrapper = () => {
+    const navigate = useNavigate();
+    return <AuthPage onLogin={() => { login(); navigate('/dashboard'); }} />;
+  };
+
   return (
     <Routes>
-      <Route path="/" element={<LandingPage onEnter={() => isAuthenticated ? window.location.href = '/dashboard' : window.location.href = '/auth'} />} />
+      <Route path="/" element={<LandingWrapper />} />
       <Route path="/auth" element={
-        isAuthenticated ? <Navigate to="/dashboard" /> : <AuthPage onLogin={() => { login(); window.location.href = '/dashboard'; }} />
+        isAuthenticated ? <Navigate to="/dashboard" /> : <AuthWrapper />
       } />
       
       {/* Protected Routes */}
       <Route path="/dashboard" element={<AppLayout><DashboardView patients={patients} /></AppLayout>} />
-      <Route path="/patients" element={<AppLayout><RosterView patients={patients} onSelectPatient={(p) => window.location.href = `/patient/${p.id}`} /></AppLayout>} />
+      <Route path="/patients" element={<AppLayout><RosterWrapper /></AppLayout>} />
       <Route path="/patient/:id" element={<AppLayout><PatientDashboardWrapper /></AppLayout>} />
       <Route path="/patient/:id/analysis" element={<AppLayout><AnalysisWrapper /></AppLayout>} />
       <Route path="/alerts" element={<AppLayout><AlertsView /></AppLayout>} />
