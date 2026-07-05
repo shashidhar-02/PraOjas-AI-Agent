@@ -879,7 +879,3 @@ PraOjas AI is designed as a **decision support tool** for healthcare professiona
 **Always defer to human clinical expertise and institutional protocols.**
 
 ---
-
-**Made with ❤️ for healthcare professionals and the open-source community**
-
-*Last Updated: June 2026*
