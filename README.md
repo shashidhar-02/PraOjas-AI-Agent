@@ -9,7 +9,7 @@
 
 **A Multi-Agent Clinical Decision Support System for ICU Risk Prediction and Explainable Healthcare Intelligence**
 
-PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CDSS) tailored for Intensive Care Unit (ICU) environments. It leverages a sophisticated multi-agent architecture powered by Google Gemini 1.5 Pro to deliver real-time sepsis risk prediction, mortality scoring, and explainable clinical insights.
+PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CDSS) tailored for Intensive Care Unit (ICU) environments. It leverages a sophisticated multi-agent architecture to deliver real-time sepsis risk prediction, mortality scoring, and explainable clinical insights.
 
 ---
 

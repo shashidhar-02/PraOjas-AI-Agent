@@ -20,22 +20,8 @@ export default function Sidebar() {
       {/* Logo Area */}
       <div className="px-6 py-8 flex items-center gap-3">
         {/* Premium Medical AI Logo */}
-        <div className="relative flex items-center justify-center w-8 h-8 flex-shrink-0">
-          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#0f172a" />
-                <stop offset="100%" stopColor="#1e293b" />
-              </linearGradient>
-              <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#06b6d4" />
-                <stop offset="100%" stopColor="#818cf8" />
-              </linearGradient>
-            </defs>
-            <rect width="100" height="100" rx="24" fill="url(#bg)" />
-            <path d="M50 82 L26 58 C12 44 16 24 30 18 C39 14 47 20 50 28 C53 20 61 14 70 18 C84 24 88 44 74 58 Z" fill="url(#heartGrad)" />
-            <text x="50" y="52" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="26" fill="#ffffff" textAnchor="middle" dominantBaseline="middle" letterSpacing="-1">PO</text>
-          </svg>
+        <div className="relative flex items-center justify-center w-10 h-10 flex-shrink-0">
+          <img src="/logo-2.png" alt="PraOjas AI" className="w-full h-full object-contain drop-shadow-sm" />
         </div>
         <span className="font-semibold text-lg text-slate-900 dark:text-white tracking-wide">PraOjas AI</span>
       </div>
