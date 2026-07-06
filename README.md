@@ -160,7 +160,29 @@ sequenceDiagram
 
 ### Agent Orchestration
 
-![Multi-Agent Workflow](assets/workflow.png)
+```mermaid
+flowchart TD
+    User([USER REQUEST <br/> Patient Data, Clinical Context]) --> Coord{COORDINATOR AGENT <br/> Main Router}
+    
+    %% Document Parsing Flow
+    Coord --> Doc[DOCUMENT PARSING AGENT <br/> PDF/CSV/Text]
+    Doc --> NLP[Clinical NLP <br/> Entity Extract]
+    
+    %% Prediction Flow with Memory
+    Coord --> Pred[PREDICTION AGENT]
+    Memory[(MEMORY AGENT <br/> Past & Upcoming Data)] -.->|Historical Context| Pred
+    Pred --> GemS[Gemini <br/> Sepsis / Mortality]
+    
+    %% Interaction convergence (Prediction feeds into Knowledge)
+    GemS --> Know[Medical Knowledge Agent]
+    NLP --> Know
+    
+    %% Final output
+    Know --> Rep[Clinical Report Agent]
+    Rep --> Formatter[RESPONSE FORMATTING <br/> JSON Response]
+    
+    Formatter --> Dash([FRONTEND DASHBOARD <br/> Visualization])
+```
 
 ### Agent Responsibilities
 
