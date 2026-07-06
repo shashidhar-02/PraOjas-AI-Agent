@@ -745,6 +745,7 @@ app.use(cors({
 </p>
 
 <p align="center"><b>Click the image to view it in full size.</b></p>
+
 ### 5. Settings & Preferences
 *User profile, security settings, authentication management, and HIPAA compliance options*
 
@@ -759,6 +760,7 @@ app.use(cors({
 <p align="center"><b>Click the image to view it in full size.</b></p>
 
 ![Individual patient workspace — live vitals tiles and 12-hour trend chart for a Critical patient](https://drive.google.com/uc?export=view&id=1_0xdNFiWGp1TA_2PV8QzlNRhuPjEaVoy)
+
 ### Live Demo
 
 For a live demo or video walkthrough, see:
