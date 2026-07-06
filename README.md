@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/shashidhar-02/PraOjas-AI-Agent)
 
-**An advanced multi-agent system that continuously analyzes patient vitals and medical records to predict critical health risks in real-time, empowering medical professionals with explainable, evidence-based treatment recommendations before patient deterioration occurs.**
+**PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CDSS) tailored for Intensive Care Unit (ICU) environments. It leverages a sophisticated multi-agent architecture to deliver proactive risk assessment, explainable predictions, and actionable clinical recommendations before patient deterioration occurs.**
 
 ---
 
