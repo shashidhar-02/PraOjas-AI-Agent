@@ -2,41 +2,57 @@ import base64
 import json
 import urllib.request
 import os
+import xml.etree.ElementTree as ET
 
 mermaid_code = """flowchart TD
-    %% Node Styling
-    classDef user fill:#6366f1,stroke:#4f46e5,stroke-width:2px,color:#fff,rx:10,ry:10,font-weight:bold,font-size:14px;
-    classDef coord fill:#10b981,stroke:#059669,stroke-width:3px,color:#fff,font-weight:bold,font-size:15px;
-    classDef agent fill:#f43f5e,stroke:#e11d48,stroke-width:2px,color:#fff,rx:8,ry:8;
-    classDef llm fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff,rx:8,ry:8,stroke-dasharray: 5 5;
-    classDef ui fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff,rx:12,ry:12;
-    classDef memory fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff;
-    classDef formatting fill:#64748b,stroke:#475569,stroke-width:2px,color:#fff,rx:5,ry:5;
+    %% Global Styling
+    classDef default fill:#ffffff,stroke:#e2e8f0,stroke-width:2px,color:#1e293b,font-family:Inter;
+    
+    classDef user fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a,font-size:14px,font-weight:bold,rx:8,ry:8;
+    classDef coord fill:#f0fdf4,stroke:#22c55e,stroke-width:3px,color:#14532d,font-size:15px,font-weight:bold,rx:8,ry:8;
+    classDef agent fill:#fff1f2,stroke:#f43f5e,stroke-width:2px,color:#881337,font-size:14px,font-weight:bold,rx:5,ry:5;
+    classDef llm fill:#faf5ff,stroke:#a855f7,stroke-width:3px,color:#581c87,font-size:14px,font-weight:bold,stroke-dasharray: 4 4,rx:8,ry:8;
+    classDef db fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f,font-size:13px,font-weight:bold;
+    classDef ui fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a,font-size:14px,font-weight:bold,rx:8,ry:8;
 
-    %% Nodes
-    User([👤 USER REQUEST <br/> Patient Data & Vitals]):::user --> Coord{🧠 COORDINATOR <br/> AGENT}:::coord
+    %% Nodes (Simplified for easier understanding)
+    User([👤 USER REQUEST]):::user
+    Coord{🧠 COORDINATOR AGENT}:::coord
     
-    %% Document Parsing Flow
-    Coord --> Doc[📄 DOCUMENT PARSING AGENT <br/> PDF/CSV/Text]:::agent
-    Doc --> NLP[📝 Clinical NLP <br/> Entity Extract]:::agent
+    Doc[📄 DOCUMENT PARSER]:::agent
+    NLP[📝 CLINICAL NLP]:::agent
     
-    %% Prediction Flow with Memory
-    Coord --> Pred[⚡ PREDICTION AGENT <br/> Risk Scoring]:::agent
-    Memory[(💾 MEMORY AGENT <br/> Past & Upcoming Data)]:::memory -.->|Historical Context| Pred
-    Pred --> GemS[✨ Gemini LLM <br/> Sepsis / Mortality]:::llm
+    Pred[⚡ PREDICTION AGENT]:::agent
+    Memory[(💾 MEMORY AGENT)]:::db
+    GemS[✨ GEMINI 1.5 PRO]:::llm
     
-    %% Interaction convergence (Prediction feeds into Knowledge)
-    GemS --> Know[📚 Medical Knowledge Agent <br/> Guidelines]:::agent
-    NLP --> Know
+    Know[📚 MEDICAL KNOWLEDGE]:::agent
+    Rep[📋 CLINICAL REPORT]:::agent
     
-    %% Final output
-    Know --> Rep[📋 Clinical Report Agent <br/> Generate Insights]:::agent
-    Rep --> Formatter[⚙️ RESPONSE FORMATTING <br/> JSON Response]:::formatting
+    Formatter[⚙️ RESPONSE FORMATTER]:::ui
+    Dash([💻 FRONTEND DASHBOARD]):::ui
+
+    %% Connections
+    User ==>|Vitals & Docs| Coord
     
-    Formatter --> Dash([💻 FRONTEND DASHBOARD <br/> Visualization & Alerts]):::ui
+    Coord ==>|Parse| Doc
+    Coord ==>|Analyze| Pred
+    
+    Doc -->|Extract Text| NLP
+    
+    Memory -.->|History| Pred
+    Pred ==>|Risk Data| GemS
+    
+    GemS ==>|Risk Scoring| Know
+    NLP -->|Entities| Know
+    
+    Know ==>|Treatment Plan| Rep
+    Rep ==>|Summary| Formatter
+    
+    Formatter ==>|Update UI| Dash
 """
 
-# Create state object with beautiful base theme
+# Create state object
 state = {
     "code": mermaid_code,
     "mermaid": {
@@ -46,7 +62,10 @@ state = {
             "primaryColor": "#ffffff",
             "edgeLabelBackground": "#ffffff",
             "tertiaryColor": "#f8fafc",
-            "lineColor": "#cbd5e1"
+            "lineColor": "#64748b",
+            "textColor": "#0f172a",
+            "background": "#ffffff",
+            "mainBkg": "#ffffff"
         }
     }
 }
@@ -55,14 +74,48 @@ state = {
 json_str = json.dumps(state)
 b64 = base64.urlsafe_b64encode(json_str.encode('utf-8')).decode('utf-8').rstrip("=")
 
-url = f"https://mermaid.ink/img/{b64}"
+# Download as SVG
+url = f"https://mermaid.ink/svg/{b64}?bgColor=ffffff"
 
 print(f"Downloading from: {url}")
 
 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
 with urllib.request.urlopen(req) as response:
-    os.makedirs('assets', exist_ok=True)
-    with open('assets/workflow.png', 'wb') as f:
-        f.write(response.read())
+    original_svg = response.read().decode('utf-8')
 
-print("Successfully saved to assets/workflow.png")
+# We will parse the viewBox of the original SVG to find its exact Width and Height
+import re
+viewbox_match = re.search(r'viewBox="([\d\.\-\s]+)"', original_svg)
+if not viewbox_match:
+    print("Could not find viewBox")
+    exit(1)
+
+parts = viewbox_match.group(1).split()
+orig_w = float(parts[2])
+orig_h = float(parts[3])
+
+# Calculate a wide rectangular aspect ratio (e.g. 16:9 or 2:1)
+# The flow is TD, so orig_h is likely larger than orig_w.
+# We want the final canvas to be a wide rectangle (width > height)
+new_w = max(orig_w * 2, orig_h * 1.5) # Force width to be larger than height by 1.5x
+new_h = orig_h + 100 # Add slight vertical padding
+
+x_offset = (new_w - orig_w) / 2
+y_offset = (new_h - orig_h) / 2
+
+# Wrap the original SVG in a new wide rectangular SVG canvas!
+wrapped_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {new_w} {new_h}" width="100%" height="100%">
+    <!-- White background for the wide rectangle -->
+    <rect width="100%" height="100%" fill="#ffffff" />
+    
+    <!-- Centered original diagram -->
+    <svg x="{x_offset}" y="{y_offset}" width="{orig_w}" height="{orig_h}">
+        {original_svg}
+    </svg>
+</svg>'''
+
+os.makedirs('assets', exist_ok=True)
+with open('assets/workflow.svg', 'w', encoding='utf-8') as f:
+    f.write(wrapped_svg)
+
+print("Successfully saved wide rectangular SVG to assets/workflow.svg")

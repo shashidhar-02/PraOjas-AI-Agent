@@ -1,4 +1,4 @@
-# PraOjas AI Agent: Predictive Clinical Decision Support
+# PraOjas AI
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-87.8%25-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-5.8%25-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -7,7 +7,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/shashidhar-02/PraOjas-AI-Agent)
 
+<<<<<<< Updated upstream
 **PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CDSS) tailored for Intensive Care Unit (ICU) environments. It leverages a sophisticated multi-agent architecture to deliver proactive risk assessment, explainable predictions, and actionable clinical recommendations before patient deterioration occurs.**
+=======
+**A Multi-Agent Clinical Decision Support System for ICU Risk Prediction and Explainable Healthcare Intelligence**
+
+PraOjas AI is a next-generation, AI-powered Clinical Decision Support System (CDSS) tailored for Intensive Care Unit (ICU) environments. It leverages a sophisticated multi-agent architecture to deliver proactive risk assessment, explainable predictions, and actionable clinical recommendations before patient deterioration occurs.
+>>>>>>> Stashed changes
 
 ---
 
@@ -158,7 +164,7 @@ sequenceDiagram
 
 ### Agent Orchestration
 
-![Multi-Agent Workflow](assets/workflow.svg)
+![Multi-Agent Workflow](assets/workflow.png)
 
 ### Agent Responsibilities
 
