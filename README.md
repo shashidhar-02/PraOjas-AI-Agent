@@ -1,4 +1,4 @@
-# PraOjas AI
+# PraOjas AI: Predictive Clinical Decision Support
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-87.8%25-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-5.8%25-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -134,7 +134,7 @@ sequenceDiagram
     participant User as Frontend (Doctor)
     participant API as Backend API
     participant Coord as Coordinator Agent
-    participant Gemini as Google Gemini 1.5 Pro
+    participant Gemini as Google Gemini Models
     
     User->>API: Submits Patient Vitals/Notes
     API->>Coord: Route Request
@@ -745,6 +745,7 @@ app.use(cors({
 </p>
 
 <p align="center"><b>Click the image to view it in full size.</b></p>
+
 ### 5. Settings & Preferences
 *User profile, security settings, authentication management, and HIPAA compliance options*
 
@@ -759,6 +760,7 @@ app.use(cors({
 <p align="center"><b>Click the image to view it in full size.</b></p>
 
 ![Individual patient workspace — live vitals tiles and 12-hour trend chart for a Critical patient](https://drive.google.com/uc?export=view&id=1_0xdNFiWGp1TA_2PV8QzlNRhuPjEaVoy)
+
 ### Live Demo
 
 For a live demo or video walkthrough, see:
