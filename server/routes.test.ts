@@ -25,4 +25,56 @@ describe('API Routes & Security', () => {
     // Then it calls monitoringAgent.registerPatient(patient). That will throw because it's a mock without the method.
     expect(response.status).toBe(500); // Because it throws an error internally calling undefined method
   });
+  
+    describe('Router SSE stream', () => {
+      it('should expose prior alerts and stream headers for connected clients', async () => {
+        const mockCoordinatorAgent = {
+          handleDocumentUpload: async () => ({}),
+        } as any;
+        const mockMonitoringAgent = {
+          registerPatient: () => undefined,
+          updatePatient: () => undefined,
+          deregisterPatient: () => undefined,
+        } as any;
+        const sseClients = new Set<any>();
+        const alertHistory = [
+          {
+            patientId: 'P-100',
+            patientName: 'History Patient',
+            alertType: 'HYPOXIA',
+            severity: 'CRITICAL',
+            message: 'Critical hypoxia: SpO2 84%. Immediate oxygen supplementation required.',
+            timestamp: '2026-07-30T00:00:00.000Z',
+          },
+        ];
+
+        const app = express();
+        app.use('/api', createRouter(mockCoordinatorAgent, mockMonitoringAgent, sseClients, alertHistory));
+
+        const server = app.listen(0);
+        try {
+          const address = server.address();
+          if (!address || typeof address === 'string') {
+            throw new Error('Failed to start SSE test server');
+          }
+
+          const response = await fetch(`http://127.0.0.1:${address.port}/api/alerts/stream`);
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error('Expected a streaming response body');
+          }
+
+          const { value } = await reader.read();
+          const chunk = new TextDecoder().decode(value);
+          await reader.cancel();
+
+          expect(response.headers.get('content-type')).toContain('text/event-stream');
+          expect(chunk).toContain('data:');
+          expect(chunk).toContain('HYPOXIA');
+          expect(sseClients.size).toBe(1);
+        } finally {
+          await new Promise<void>(resolve => server.close(() => resolve()));
+        }
+      });
+    });
 });

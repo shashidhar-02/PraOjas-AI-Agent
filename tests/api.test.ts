@@ -3,6 +3,25 @@ import express from 'express';
 import request from 'supertest';
 import { createRouter } from '../server/routes';
 
+vi.mock('pdf-parse', () => ({
+  PDFParse: class {
+    constructor(_options: any) {}
+
+    async getText() {
+      return { text: 'Mock parsed PDF content with elevated lactate.' };
+    }
+  },
+  default: {
+    PDFParse: class {
+      constructor(_options: any) {}
+
+      async getText() {
+        return { text: 'Mock parsed PDF content with elevated lactate.' };
+      }
+    },
+  },
+}));
+
 /**
  * api.test.ts
  *
@@ -157,6 +176,36 @@ describe('POST /api/patients/register', () => {
   });
 });
 
+// ─── POST /api/patients/update ──────────────────────────────────────────────
+describe('POST /api/patients/update', () => {
+  it('should update a patient in the monitoring agent registry', async () => {
+    const { app, mockMonitoringAgent } = buildTestApp();
+    const res = await request(app).post('/api/patients/update').send({ patient: samplePatient });
+
+    expect(res.status).toBe(200);
+    expect(res.body.updated).toBe(true);
+    expect(mockMonitoringAgent.updatePatient).toHaveBeenCalledWith(samplePatient);
+  });
+
+  it('should return 400 if patient is missing', async () => {
+    const { app } = buildTestApp();
+    const res = await request(app).post('/api/patients/update').send({});
+    expect(res.status).toBe(400);
+  });
+});
+
+// ─── DELETE /api/patients/:id/deregister ────────────────────────────────────
+describe('DELETE /api/patients/:id/deregister', () => {
+  it('should remove a patient from the monitoring agent registry', async () => {
+    const { app, mockMonitoringAgent } = buildTestApp();
+    const res = await request(app).delete('/api/patients/P-001/deregister');
+
+    expect(res.status).toBe(200);
+    expect(res.body.deregistered).toBe(true);
+    expect(mockMonitoringAgent.deregisterPatient).toHaveBeenCalledWith('P-001');
+  });
+});
+
 // ─── POST /api/memory ────────────────────────────────────────────────────────
 describe('POST /api/memory', () => {
   it('should return prediction history for a known patient', async () => {
@@ -169,6 +218,57 @@ describe('POST /api/memory', () => {
     expect(res.body).toHaveProperty('patientId', 'P-001');
     expect(res.body).toHaveProperty('history');
     expect(Array.isArray(res.body.history)).toBe(true);
+  });
+
+  it('should reject requests without a patientId', async () => {
+    const { app } = buildTestApp();
+    const res = await request(app).post('/api/memory').send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error', 'patientId is required');
+  });
+});
+
+// ─── POST /api/parse-document ────────────────────────────────────────────────
+describe('POST /api/parse-document', () => {
+  it('should pass plain text document content to the coordinator', async () => {
+    const { app, mockCoordinatorAgent } = buildTestApp();
+    mockCoordinatorAgent.handleDocumentUpload = vi.fn().mockResolvedValue({
+      name: 'Jane Smith',
+      _validationWarnings: [],
+    });
+
+    const res = await request(app)
+      .post('/api/parse-document')
+      .attach('file', Buffer.from('Patient reports fever and cough.'), 'note.txt');
+
+    expect(res.status).toBe(200);
+    expect(mockCoordinatorAgent.handleDocumentUpload).toHaveBeenCalledWith('Patient reports fever and cough.');
+    expect(res.body).toHaveProperty('name', 'Jane Smith');
+  });
+
+  it('should parse PDF uploads before delegating to the coordinator', async () => {
+    const { app, mockCoordinatorAgent } = buildTestApp();
+    mockCoordinatorAgent.handleDocumentUpload = vi.fn().mockResolvedValue({
+      name: 'Jane Smith',
+      _validationWarnings: [],
+    });
+
+    const res = await request(app)
+      .post('/api/parse-document')
+      .attach('file', Buffer.from('%PDF-1.4 mock pdf'), 'report.pdf');
+
+    expect(res.status).toBe(200);
+    expect(mockCoordinatorAgent.handleDocumentUpload).toHaveBeenCalledWith('Mock parsed PDF content with elevated lactate.');
+    expect(res.body).toHaveProperty('name', 'Jane Smith');
+  });
+
+  it('should return 400 when no file is uploaded', async () => {
+    const { app } = buildTestApp();
+    const res = await request(app).post('/api/parse-document');
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error', 'No file uploaded');
   });
 });
 

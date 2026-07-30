@@ -81,7 +81,7 @@ describe('RetryOrchestrator', () => {
     let callCount = 0;
     const result = await RetryOrchestrator.withRetry(
       // Agent function that always succeeds
-      async (_feedback: string | null) => {
+      async (_feedback?: string) => {
         callCount++;
         return { sepsisProbability: 0.7, mortalityProbability: 0.3, confidenceScore: 0.9 };
       },
@@ -100,7 +100,7 @@ describe('RetryOrchestrator', () => {
     let callCount = 0;
     const result = await RetryOrchestrator.withRetry(
       // Agent function fails on first try, succeeds on second
-      async (_feedback: string | null) => {
+      async (_feedback?: string) => {
         callCount++;
         if (callCount < 2) {
           return { sepsisProbability: -1, mortalityProbability: 0.3, confidenceScore: 0.9 };
@@ -125,7 +125,7 @@ describe('RetryOrchestrator', () => {
     await expect(
       RetryOrchestrator.withRetry(
         // Always returns invalid result
-        async (_feedback: string | null) => ({ sepsisProbability: -1, mortalityProbability: -1, confidenceScore: -1 }),
+          async (_feedback?: string) => ({ sepsisProbability: -1, mortalityProbability: -1, confidenceScore: -1 }),
         // Validator always rejects
         (_res: any) => ({ isValid: false, error: 'always invalid' }),
         2 // Only 2 retries
@@ -155,5 +155,79 @@ describe('ModelRouter', () => {
     expect(status[0]).toHaveProperty('model');
     expect(status[0]).toHaveProperty('available');
     expect(status[0]).toHaveProperty('cooldownRemaining');
+  });
+});
+
+// ─── ValidationAgent Tests ──────────────────────────────────────────────────
+describe('ValidationAgent', () => {
+  it('should fall back to safe defaults when no structured output is returned', async () => {
+    const { ModelRouter } = await import('../server/agents/ModelRouter');
+    vi.spyOn(ModelRouter.prototype, 'generateContent').mockResolvedValue({ functionCalls: null } as any);
+
+    const { ValidationAgent } = await import('../server/agents/ValidationAgent');
+    const agent = new ValidationAgent('test-api-key');
+    const patientData = { name: 'Validation Test Patient', age: 54 };
+
+    const result = await agent.validateData(patientData);
+
+    expect(result.isValid).toBe(true);
+    expect(result.warnings).toEqual(['Validation ran but returned no structured output.']);
+    expect(result.correctedData).toEqual(patientData);
+  });
+
+  it('should return structured validation data when the model provides a tool call', async () => {
+    const { ModelRouter } = await import('../server/agents/ModelRouter');
+    vi.spyOn(ModelRouter.prototype, 'generateContent').mockResolvedValue({
+      functionCalls: [{ args: { isValid: false, warnings: ['Age corrected'], correctedData: { age: 54 } } }],
+    } as any);
+
+    const { ValidationAgent } = await import('../server/agents/ValidationAgent');
+    const agent = new ValidationAgent('test-api-key');
+
+    const result = await agent.validateData({ name: 'Validation Test Patient' }, 'Fix the age field');
+
+    expect(result.isValid).toBe(false);
+    expect(result.warnings).toEqual(['Age corrected']);
+    expect(result.correctedData).toEqual({ age: 54 });
+  });
+});
+
+// ─── MonitoringAgent Tests ──────────────────────────────────────────────────
+describe('MonitoringAgent', () => {
+  it('should emit alerts for critical vitals and persist the decision', async () => {
+    const logAgentDecision = vi.fn().mockResolvedValue(undefined);
+
+    vi.doMock('../server/agents/PredictionAgent', () => ({
+      PredictionAgent: vi.fn().mockImplementation(function () {
+        return {};
+      }),
+    }));
+
+    vi.doMock('../server/agents/MemoryAgent', () => ({
+      MemoryAgent: vi.fn().mockImplementation(function () {
+        return {
+          logAgentDecision,
+        };
+      }),
+    }));
+
+    const { MonitoringAgent } = await import('../server/agents/MonitoringAgent');
+    const agent = new MonitoringAgent('test-api-key');
+    const alerts: any[] = [];
+
+    agent.subscribe(alert => alerts.push(alert));
+
+    await (agent as any).checkPatient({
+      id: 'P-CRITICAL',
+      name: 'Critical Patient',
+      status: 'Critical',
+      vitals: { hr: 142, rr: 24, bp: '82/50', spo2: 86 },
+      labs: { lactate: 4.4 },
+    });
+
+    expect(alerts.map(alert => alert.alertType)).toEqual(
+      expect.arrayContaining(['QSOFA_POSITIVE', 'ELEVATED_LACTATE', 'HYPOTENSION', 'TACHYCARDIA', 'HYPOXIA'])
+    );
+    expect(logAgentDecision).toHaveBeenCalled();
   });
 });

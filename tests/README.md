@@ -6,13 +6,13 @@ This directory contains unit and integration tests for the PraOjas AI multi-agen
 
 | File | Coverage | Tests |
 |------|----------|-------|
-| `tests/api.test.ts` | REST API endpoints — all routes, validation, error handling | 10 |
+| `tests/api.test.ts` | REST API endpoints — routes, validation, error handling, document parsing | 17 |
 | `tests/prediction.test.ts` | `PredictionAgent` — function calling, value clamping, JSON fallback | 5 |
-| `tests/agent.test.ts` | `MemoryAgent`, `RetryOrchestrator`, `ModelRouter` | 10 |
+| `tests/agent.test.ts` | `MemoryAgent`, `RetryOrchestrator`, `ModelRouter`, `ValidationAgent`, `MonitoringAgent` | 13 |
 | `tests/dashboard.test.ts` | Dashboard logic — risk classification, alert triggering, formatting | 17 |
-| `server/routes.test.ts` | Route middleware and error handling | 1 |
+| `server/routes.test.ts` | Route middleware, SSE history, and streaming | 2 |
 | `src/App.test.tsx` | React component smoke test | 1 |
-| **Total** | | **44** |
+| **Total** | | **55** |
 
 ## Running Tests
 

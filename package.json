@@ -9,7 +9,9 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "tsx tests/run-smoke-tests.ts",
+    "test:api": "tsx tests/automation/api-smoke.ts",
+    "test:e2e": "tsx tests/automation/ui-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^8.3.1",
