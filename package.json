@@ -8,7 +8,7 @@
     "build": "vite build frontend && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit --project frontend/tsconfig.json",
     "test": "tsx tests/run-smoke-tests.ts",
     "test:api": "tsx tests/automation/api-smoke.ts",
     "test:e2e": "tsx tests/automation/ui-smoke.ts"
